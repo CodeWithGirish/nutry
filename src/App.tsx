@@ -25,6 +25,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Wishlist from "./pages/Wishlist";
 import Categories from "./pages/Categories";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 

@@ -218,11 +218,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
         >
           <Button
             className="w-full bg-brand-600 hover:bg-brand-700 text-white"
-            disabled={!product.in_stock}
+            disabled={!product.in_stock || isAdmin}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {product.in_stock ? "Quick Add" : "Notify Me"}
+            {isAdmin
+              ? "Admin View"
+              : product.in_stock
+                ? "Quick Add"
+                : "Notify Me"}
           </Button>
         </div>
       </div>

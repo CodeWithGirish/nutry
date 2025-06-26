@@ -128,19 +128,34 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       setCartItems(validCartItems);
     } catch (error: any) {
-      console.error("Error fetching cart items:", error.message || error);
+      console.error("Error fetching cart items:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+        full_error: error,
+      });
 
-      if (isDatabaseError(error)) {
+      if (
+        isDatabaseError(error) ||
+        error.status === 404 ||
+        error.message?.includes("Failed to fetch")
+      ) {
         console.log("Using local cart due to database connection error");
         loadLocalCart();
         toast({
-          title: "Offline Mode",
-          description: "Using local cart data - some features may be limited",
+          title: "Database Unavailable",
+          description:
+            "Using local cart data. Some features may be limited until connection is restored.",
+          variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: `Failed to load cart items: ${error.message || "Unknown error"}`,
+          title: "Cart Load Error",
+          description: error.code
+            ? `Database error (${error.code}): ${error.message}`
+            : `Failed to load cart items: ${error.message || "Unknown error"}`,
           variant: "destructive",
         });
       }

@@ -213,7 +213,7 @@ const OrderConfirmation = () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>NutriVault Receipt - Order #${order.id.slice(-8).toUpperCase()}</title>
+          <title>NutriVault Receipt - Order ${formatOrderId(order)}</title>
           <style>
             body {
               font-family: Arial, sans-serif;

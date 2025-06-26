@@ -566,6 +566,63 @@ const AdminDashboard = () => {
     };
   };
 
+  const getFilteredOrders = () => {
+    let filtered = [...orders];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (order) =>
+          order.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Filter by status
+    if (orderStatusFilter !== "all") {
+      filtered = filtered.filter((order) => order.status === orderStatusFilter);
+    }
+
+    // Filter by date
+    if (orderDateFilter === "custom" && orderStartDate && orderEndDate) {
+      const startDate = new Date(orderStartDate).toISOString();
+      const endDate = new Date(orderEndDate + "T23:59:59").toISOString();
+      filtered = filtered.filter((order) => {
+        const orderDate = order.created_at;
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+    } else if (orderDateFilter !== "all") {
+      const now = new Date();
+      let filterDate = new Date();
+
+      switch (orderDateFilter) {
+        case "today":
+          filterDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          break;
+        case "week":
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case "quarter":
+          filterDate.setMonth(now.getMonth() - 3);
+          break;
+      }
+
+      filtered = filtered.filter(
+        (order) => new Date(order.created_at) >= filterDate,
+      );
+    }
+
+    return filtered;
+  };
+
   const fetchStats = async () => {
     try {
       const dateRange = getDateRange(timeRange);

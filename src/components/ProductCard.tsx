@@ -317,7 +317,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Button
             size="sm"
             className="bg-brand-600 hover:bg-brand-700 text-white"
-            disabled={!product.in_stock}
+            disabled={!product.in_stock || isAdmin}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4" />

@@ -165,15 +165,59 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
+      // First, fetch the product to check stock availability
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select("stock_quantity, name, in_stock")
+        .eq("id", productId)
+        .single();
+
+      if (productError) throw productError;
+
+      if (!productData) {
+        toast({
+          title: "Product not found",
+          description: "The requested product could not be found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!productData.in_stock) {
+        toast({
+          title: "Out of stock",
+          description: `${productData.name} is currently out of stock`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Check if item already exists in cart
       const existingItem = cartItems.find(
         (item) =>
           item.product_id === productId && item.selected_weight === weight,
       );
 
+      let totalRequestedQuantity = quantity;
+      if (existingItem) {
+        totalRequestedQuantity = existingItem.quantity + quantity;
+      }
+
+      // Check if requested quantity exceeds available stock
+      if (totalRequestedQuantity > productData.stock_quantity) {
+        const availableQuantity =
+          productData.stock_quantity - (existingItem?.quantity || 0);
+        toast({
+          title: "Insufficient stock",
+          description: `Only ${availableQuantity} items available. You currently have ${existingItem?.quantity || 0} in your cart.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (existingItem) {
         // Update quantity
-        await updateQuantity(existingItem.id, existingItem.quantity + 1);
+        await updateQuantity(existingItem.id, existingItem.quantity + quantity);
       } else {
         // Add new item
         const { data: cartItem, error } = await supabase
@@ -305,6 +349,44 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
+      // Find the cart item to get product info
+      const cartItem = cartItems.find((item) => item.id === cartItemId);
+      if (!cartItem) {
+        toast({
+          title: "Error",
+          description: "Cart item not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check stock availability before updating
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select("stock_quantity, name, in_stock")
+        .eq("id", cartItem.product_id)
+        .single();
+
+      if (productError) throw productError;
+
+      if (!productData.in_stock) {
+        toast({
+          title: "Out of stock",
+          description: `${productData.name} is currently out of stock`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (quantity > productData.stock_quantity) {
+        toast({
+          title: "Insufficient stock",
+          description: `Only ${productData.stock_quantity} items available for ${productData.name}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from("cart")
         .update({ quantity })

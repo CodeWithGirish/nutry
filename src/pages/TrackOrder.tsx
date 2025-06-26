@@ -491,8 +491,11 @@ const TrackOrder = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="h-5 w-5" />
-                    Your Recent Orders
+                    Your Pending Orders
                   </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Orders that are yet to be delivered
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">

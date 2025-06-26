@@ -400,13 +400,23 @@ const Profile = () => {
                         </div>
                       )}
 
-                      <Button
-                        onClick={() => setIsEditing(true)}
-                        className="w-full bg-brand-600 hover:bg-brand-700"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={() => setIsEditing(true)}
+                          className="w-full bg-brand-600 hover:bg-brand-700"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                        <Button
+                          onClick={() => setShowChangePassword(true)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Change Password
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">

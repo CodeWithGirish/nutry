@@ -563,7 +563,7 @@ const AdminDashboard = () => {
 
     return {
       start: startDate.toISOString(),
-      end: now.toISOString()
+      end: now.toISOString(),
     };
   };
 
@@ -572,10 +572,11 @@ const AdminDashboard = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter((order) =>
-        order.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (order) =>
+          order.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -598,7 +599,11 @@ const AdminDashboard = () => {
 
       switch (orderDateFilter) {
         case "today":
-          filterDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          filterDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
           break;
         case "week":
           filterDate.setDate(now.getDate() - 7);
@@ -611,8 +616,8 @@ const AdminDashboard = () => {
           break;
       }
 
-      filtered = filtered.filter((order) =>
-        new Date(order.created_at) >= filterDate
+      filtered = filtered.filter(
+        (order) => new Date(order.created_at) >= filterDate,
       );
     }
 
@@ -1859,7 +1864,10 @@ const AdminDashboard = () => {
                 {/* Order Filters */}
                 <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="order-search" className="text-sm font-medium">
+                    <Label
+                      htmlFor="order-search"
+                      className="text-sm font-medium"
+                    >
                       Search:
                     </Label>
                     <Input
@@ -1872,10 +1880,16 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="order-status" className="text-sm font-medium">
+                    <Label
+                      htmlFor="order-status"
+                      className="text-sm font-medium"
+                    >
                       Status:
                     </Label>
-                    <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                    <Select
+                      value={orderStatusFilter}
+                      onValueChange={setOrderStatusFilter}
+                    >
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -1894,7 +1908,10 @@ const AdminDashboard = () => {
                     <Label htmlFor="order-date" className="text-sm font-medium">
                       Date:
                     </Label>
-                    <Select value={orderDateFilter} onValueChange={setOrderDateFilter}>
+                    <Select
+                      value={orderDateFilter}
+                      onValueChange={setOrderDateFilter}
+                    >
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -1912,7 +1929,10 @@ const AdminDashboard = () => {
                   {orderDateFilter === "custom" && (
                     <>
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="start-date" className="text-sm font-medium">
+                        <Label
+                          htmlFor="start-date"
+                          className="text-sm font-medium"
+                        >
                           From:
                         </Label>
                         <Input
@@ -1924,7 +1944,10 @@ const AdminDashboard = () => {
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="end-date" className="text-sm font-medium">
+                        <Label
+                          htmlFor="end-date"
+                          className="text-sm font-medium"
+                        >
                           To:
                         </Label>
                         <Input
@@ -1939,7 +1962,8 @@ const AdminDashboard = () => {
                   )}
 
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Showing {getFilteredOrders().length} of {orders.length} orders
+                    Showing {getFilteredOrders().length} of {orders.length}{" "}
+                    orders
                   </div>
                 </div>
                 <div className="border rounded-lg">
@@ -2037,7 +2061,6 @@ const AdminDashboard = () => {
                                   <Eye className="h-3 w-3" />
                                 </Button>
                                 <ReceiptGenerator order={order} />
-                                </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"

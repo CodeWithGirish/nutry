@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +13,17 @@ import {
   Globe,
   Star,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const About = () => {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAdmin) {
+      navigate("/admin-dashboard");
+    }
+  }, [isAdmin, navigate]);
   const values = [
     {
       icon: Leaf,

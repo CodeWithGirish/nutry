@@ -85,20 +85,10 @@ import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "@/lib/email";
 import { parsePrices, formatPrice, formatDate } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
-interface AdminSession {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  loginTime: string;
-}
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-
-  // Admin session management
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  const { adminSession, logoutAdmin } = useAdminAuth();
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // Data states

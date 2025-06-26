@@ -244,20 +244,50 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         // Update quantity
         await updateQuantity(existingItem.id, existingItem.quantity + quantity);
       } else {
-        // Add new item
+        // Add new item - use upsert to handle potential race conditions
         const { data: cartItem, error } = await supabase
           .from("cart")
-          .insert({
-            user_id: user.id,
-            product_id: productId,
-            quantity: quantity,
-            selected_weight: weight,
-            selected_price: price,
-          })
+          .upsert(
+            {
+              user_id: user.id,
+              product_id: productId,
+              quantity: quantity,
+              selected_weight: weight,
+              selected_price: price,
+            },
+            {
+              onConflict: "user_id,product_id,selected_weight",
+            },
+          )
           .select("*")
           .single();
 
-        if (error) throw error;
+        if (error) {
+          // If upsert fails due to constraint, try to update existing item
+          if (
+            error.code === "23505" ||
+            error.message.includes("duplicate key")
+          ) {
+            console.log("Item exists, updating quantity instead");
+            // Fetch the existing item and update it
+            const { data: existingCartItem, error: fetchError } = await supabase
+              .from("cart")
+              .select("*")
+              .eq("user_id", user.id)
+              .eq("product_id", productId)
+              .eq("selected_weight", weight)
+              .single();
+
+            if (!fetchError && existingCartItem) {
+              await updateQuantity(
+                existingCartItem.id,
+                existingCartItem.quantity + quantity,
+              );
+              return;
+            }
+          }
+          throw error;
+        }
 
         // Fetch product details separately
         const { data: productData } = await supabase
@@ -272,7 +302,26 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           product: productData || null,
         };
 
-        setCartItems((prev) => [...prev, enrichedCartItem]);
+        // Check if item already exists in state (to avoid duplicates)
+        const existingInState = cartItems.find(
+          (item) =>
+            item.product_id === productId && item.selected_weight === weight,
+        );
+
+        if (existingInState) {
+          // Update existing item in state
+          setCartItems((prev) =>
+            prev.map((item) =>
+              item.product_id === productId && item.selected_weight === weight
+                ? { ...item, quantity: item.quantity + quantity }
+                : item,
+            ),
+          );
+        } else {
+          // Add new item to state
+          setCartItems((prev) => [...prev, enrichedCartItem]);
+        }
+
         toast({
           title: "Added to cart",
           description: "Item has been added to your cart",
@@ -459,7 +508,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         // If database is unavailable, update local state only
         console.log("Updating local cart quantity due to database error");
         const updatedCartItems = cartItems.map((item) =>
-          item.id === cartItemId ? { ...item, quantity: newQuantity } : item,
+          item.id === cartItemId ? { ...item, quantity: quantity } : item,
         );
         setCartItems(updatedCartItems);
 

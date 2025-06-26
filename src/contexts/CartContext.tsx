@@ -179,6 +179,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description:
+          "Admin accounts cannot add items to cart or make purchases",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // First, fetch the product to check stock availability
       const { data: productData, error: productError } = await supabase

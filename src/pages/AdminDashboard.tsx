@@ -1955,7 +1955,7 @@ const AdminDashboard = () => {
                         return (
                           <TableRow key={order.id}>
                             <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order.id)}
+                              {formatOrderId(order)}
                             </TableCell>
                             <TableCell>
                               <div>

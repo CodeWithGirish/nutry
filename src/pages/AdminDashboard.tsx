@@ -928,9 +928,15 @@ const AdminDashboard = () => {
         }
       }
 
+      // Find the order to get the full object for formatting
+      const updatedOrder = orders.find((o) => o.id === orderId);
+      const orderDisplayId = updatedOrder
+        ? formatOrderId(updatedOrder)
+        : orderId;
+
       toast({
         title: "Order status updated!",
-        description: `Order ${formatOrderId(orderId)} has been marked as ${newStatus}.`,
+        description: `Order ${orderDisplayId} has been marked as ${newStatus}.`,
       });
     } catch (error: any) {
       toast({

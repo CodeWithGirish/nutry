@@ -13,13 +13,6 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
   order,
   onClose,
 }) => {
-  const formatOrderId = (id: string) => {
-    if (id.startsWith("demo-")) {
-      return `#ORD-2024-${id.split("-")[2]?.padStart(3, "0") || "001"}`;
-    }
-    return `#ORD-${id.slice(-8).toUpperCase()}`;
-  };
-
   const generateReceiptHTML = () => {
     return `
       <!DOCTYPE html>

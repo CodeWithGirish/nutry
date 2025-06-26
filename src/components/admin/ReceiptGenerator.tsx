@@ -185,7 +185,7 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
                 <div class="info-grid">
                   <div class="info-item">
                     <span class="info-label">Order ID:</span>
-                    <span class="info-value">${formatOrderId(order.id)}</span>
+                    <span class="info-value">${formatOrderId(order)}</span>
                   </div>
                   <div class="info-item">
                     <span class="info-label">Order Date:</span>

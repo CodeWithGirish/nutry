@@ -283,21 +283,6 @@ const Navigation = () => {
                     {item.name}
                   </Link>
                 ))}
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className={cn(
-                      "text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center gap-2",
-                      isActive("/admin")
-                        ? "bg-brand-100 text-brand-700"
-                        : "text-gray-700 hover:bg-gray-100",
-                    )}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Shield className="h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                )}
               </nav>
 
               {/* Mobile auth actions */}

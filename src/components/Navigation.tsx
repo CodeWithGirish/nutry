@@ -143,7 +143,7 @@ const Navigation = () => {
 
             {/* User Actions */}
             <div className="flex items-center space-x-2">
-              {user && (
+              {user && !isAdmin && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -159,19 +159,21 @@ const Navigation = () => {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="relative"
-                onClick={() => navigate("/cart")}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
+              {!isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative"
+                  onClick={() => navigate("/cart")}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              )}
 
               {user ? (
                 <DropdownMenu>

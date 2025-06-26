@@ -758,11 +758,11 @@ const AdminDashboard = () => {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem("admin_session");
+    logoutAdmin();
     navigate("/admin-login");
     toast({
       title: "Signed out",
-      description: "You have been signed out successfully",
+      description: "You have been signed out securely",
     });
   };
 
@@ -1309,7 +1309,7 @@ const AdminDashboard = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
                 <div>
                   <h3 className="font-semibold text-green-900">
-                    �� Admin Dashboard Fully Operational!
+                    🎉 Admin Dashboard Fully Operational!
                   </h3>
                   <p className="text-green-700">
                     Connected to live database with real-time updates. All admin

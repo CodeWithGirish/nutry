@@ -325,6 +325,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const removeFromCart = async (cartItemId: string) => {
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description: "Admin accounts cannot modify cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("cart")

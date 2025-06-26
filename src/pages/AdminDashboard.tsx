@@ -79,6 +79,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { supabase, type Product, type Order } from "@/lib/supabase";
 import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "@/lib/email";
 import { parsePrices, formatPrice, formatDate } from "@/lib/utils";

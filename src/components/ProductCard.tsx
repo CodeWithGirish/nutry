@@ -33,6 +33,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
     parsePrices(product.prices)[0]?.weight || "250g",
   );
   const [isHovered, setIsHovered] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Get all product images (including legacy single image)
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : [product.image_url];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + productImages.length) % productImages.length,
+    );
+  };
 
   const isWishlisted = isInWishlist(product.id);
 

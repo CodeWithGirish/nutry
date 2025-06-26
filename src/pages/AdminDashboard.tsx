@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
-import ImageUpload from "@/components/ImageUpload";
+import MultiImageUpload from "@/components/MultiImageUpload";
 import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
 import DatabaseDebug from "@/components/DatabaseDebug";
 import { Button } from "@/components/ui/button";
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
         description:
           "Raw, unsalted almonds packed with protein and healthy fats.",
         category: "Nuts",
-        image_url: "🥜",
+        image_url: "���",
         images: ["🥜"],
         prices: JSON.stringify([
           { weight: "250g", price: 24.99 },

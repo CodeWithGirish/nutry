@@ -6,6 +6,34 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Test database connection
+export const testDatabaseConnection = async () => {
+  try {
+    console.log("Testing database connection...");
+    const { data, error } = await supabase
+      .from("products")
+      .select("id")
+      .limit(1);
+
+    if (error) {
+      console.error("Database connection test failed:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+      });
+      return false;
+    }
+
+    console.log("Database connection test successful:", data);
+    return true;
+  } catch (error) {
+    console.error("Database connection test error:", error);
+    return false;
+  }
+};
+
 // Database types
 export interface User {
   id: string;

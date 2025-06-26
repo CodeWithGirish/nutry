@@ -114,6 +114,12 @@ const AdminDashboard = () => {
   const [timeRange, setTimeRange] = useState("30d");
   const [productLoading, setProductLoading] = useState(false);
 
+  // Order filtering states
+  const [orderDateFilter, setOrderDateFilter] = useState("all");
+  const [orderStartDate, setOrderStartDate] = useState("");
+  const [orderEndDate, setOrderEndDate] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
+
   // Stats
   const [stats, setStats] = useState({
     totalOrders: 0,

@@ -124,9 +124,28 @@ const ImageUpload = ({
       });
     } catch (error: any) {
       console.error("Upload error:", error);
+
+      // Extract error message properly
+      let errorMessage = "Failed to upload images";
+
+      if (error) {
+        if (typeof error === "string") {
+          errorMessage = error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (error.error) {
+          errorMessage = error.error;
+        } else if (error.details) {
+          errorMessage = error.details;
+        } else {
+          // Fallback for complex error objects
+          errorMessage = JSON.stringify(error);
+        }
+      }
+
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload images",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

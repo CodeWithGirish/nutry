@@ -118,6 +118,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
+    periodRevenue: 0,
     totalProducts: 0,
     totalCustomers: 0,
     pendingOrders: 0,

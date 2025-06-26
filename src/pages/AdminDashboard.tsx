@@ -2332,6 +2332,13 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Debug Tab */}
+          <TabsContent value="debug" className="space-y-6">
+            <div className="flex justify-center">
+              <DatabaseDebug />
+            </div>
+          </TabsContent>
         </Tabs>
 
         {/* Edit Product Dialog */}

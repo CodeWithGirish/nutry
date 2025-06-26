@@ -301,7 +301,7 @@ const OrderConfirmation = () => {
           <div class="order-info">
             <div class="info-section">
               <div class="info-title">Order Information</div>
-              <div><strong>Order ID:</strong> #${order.id.slice(-8).toUpperCase()}</div>
+              <div><strong>Order ID:</strong> ${formatOrderId(order)}</div>
               <div><strong>Date:</strong> ${formatDate(order.created_at)}</div>
               <div><strong>Status:</strong> ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</div>
               <div><strong>Payment:</strong> ${order.payment_method === "stripe" ? "Credit Card" : "Cash on Delivery"}</div>

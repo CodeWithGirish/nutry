@@ -736,13 +736,13 @@ const Profile = () => {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Recent Orders</CardTitle>
+                    <CardTitle>Order History</CardTitle>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate("/track-order")}
                     >
-                      View All Orders
+                      Track Pending Orders
                     </Button>
                   </div>
                 </CardHeader>

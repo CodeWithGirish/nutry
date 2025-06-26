@@ -47,7 +47,12 @@ const Navigation = () => {
       ];
     }
 
-    // Logged-in users see full navigation
+    // Admin users only see admin navigation
+    if (isAdmin) {
+      return [{ name: "Admin Dashboard", href: "/admin-dashboard" }];
+    }
+
+    // Regular logged-in users see full navigation
     return [
       { name: "Home", href: "/" },
       { name: "Products", href: "/products" },

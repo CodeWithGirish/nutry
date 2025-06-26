@@ -122,20 +122,6 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-brand-600 flex items-center gap-1",
-                  isActive("/admin")
-                    ? "text-brand-600 border-b-2 border-brand-600 pb-1"
-                    : "text-gray-700",
-                )}
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
-            )}
           </nav>
 
           {/* Search and Actions */}

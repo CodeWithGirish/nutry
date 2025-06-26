@@ -27,6 +27,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import DatabaseDebug from "@/components/DatabaseDebug";
 import { supabase, type Product } from "@/lib/supabase";
 import { formatPrice } from "@/lib/utils";
 import { mockProducts, isDatabaseError } from "@/lib/fallback";

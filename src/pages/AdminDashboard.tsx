@@ -525,8 +525,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    const startDate = new Date();
+
+    switch (range) {
+      case "7d":
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case "30d":
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case "90d":
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case "1y":
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    return {
+      start: startDate.toISOString(),
+      end: now.toISOString(),
+    };
+  };
+
   const fetchStats = async () => {
     try {
+      const dateRange = getDateRange(timeRange);
+
       // Fetch total orders with error handling
       const { count: ordersCount, error: ordersError } = await supabase
         .from("orders")
@@ -536,8 +565,8 @@ const AdminDashboard = () => {
         console.warn("Error fetching orders count:", ordersError);
       }
 
-      // Fetch total revenue with error handling
-      const { data: revenueData, error: revenueError } = await supabase
+      // Fetch total revenue (all time) with error handling
+      const { data: allTimeRevenueData, error: revenueError } = await supabase
         .from("orders")
         .select("total_amount")
         .eq("payment_status", "paid");
@@ -547,7 +576,26 @@ const AdminDashboard = () => {
       }
 
       const totalRevenue =
-        revenueData?.reduce(
+        allTimeRevenueData?.reduce(
+          (sum, order) => sum + (order.total_amount || 0),
+          0,
+        ) || 0;
+
+      // Fetch revenue for selected time range
+      const { data: periodRevenueData, error: periodRevenueError } =
+        await supabase
+          .from("orders")
+          .select("total_amount, created_at")
+          .eq("payment_status", "paid")
+          .gte("created_at", dateRange.start)
+          .lte("created_at", dateRange.end);
+
+      if (periodRevenueError) {
+        console.warn("Error fetching period revenue data:", periodRevenueError);
+      }
+
+      const periodRevenue =
+        periodRevenueData?.reduce(
           (sum, order) => sum + (order.total_amount || 0),
           0,
         ) || 0;
@@ -570,7 +618,7 @@ const AdminDashboard = () => {
           0,
         ) || 0;
 
-      // Fetch monthly revenue
+      // Fetch monthly revenue (current month)
       const startOfMonth = new Date(
         new Date().getFullYear(),
         new Date().getMonth(),

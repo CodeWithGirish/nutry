@@ -142,38 +142,10 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    // Check admin authentication first
-    const session = localStorage.getItem("admin_session");
-
-    if (!session) {
-      if (!user || !isAdmin) {
-        navigate("/admin-login");
-        return;
-      }
-      // Create admin session from auth context
-      const adminData = {
-        id: user.id,
-        email: user.email || "",
-        name: user.user_metadata?.full_name || "Admin",
-        role: "admin",
-        loginTime: new Date().toISOString(),
-      };
-      localStorage.setItem("admin_session", JSON.stringify(adminData));
-      setAdminSession(adminData);
-    } else {
-      try {
-        const adminData = JSON.parse(session);
-        setAdminSession(adminData);
-      } catch (error) {
-        console.error("Invalid admin session:", error);
-        localStorage.removeItem("admin_session");
-        navigate("/admin-login");
-        return;
-      }
-    }
-
+    // Admin authentication is handled by AdminProtectedRoute
+    // Just fetch data when component mounts
     fetchData();
-  }, [user, isAdmin, navigate]);
+  }, []);
 
   // Refresh stats when time range changes
   useEffect(() => {
@@ -1337,7 +1309,7 @@ const AdminDashboard = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
                 <div>
                   <h3 className="font-semibold text-green-900">
-                    🎉 Admin Dashboard Fully Operational!
+                    �� Admin Dashboard Fully Operational!
                   </h3>
                   <p className="text-green-700">
                     Connected to live database with real-time updates. All admin

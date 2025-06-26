@@ -36,7 +36,7 @@ This will create:
 - ✅ Proper indexes and constraints
 - ✅ Sample data for demonstration
 
-### Step 2: Verify Setup
+### Step 3: Verify Setup
 
 After running the script, you should see:
 

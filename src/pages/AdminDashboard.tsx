@@ -82,7 +82,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { supabase, type Product, type Order } from "@/lib/supabase";
 import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "@/lib/email";
-import { parsePrices, formatPrice, formatDate } from "@/lib/utils";
+import {
+  parsePrices,
+  formatPrice,
+  formatDate,
+  formatOrderId,
+} from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {

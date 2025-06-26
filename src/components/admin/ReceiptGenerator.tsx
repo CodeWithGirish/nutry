@@ -19,7 +19,7 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Receipt - ${formatOrderId(order.id)}</title>
+          <title>Receipt - ${formatOrderId(order)}</title>
           <style>
             body {
               font-family: 'Arial', sans-serif;

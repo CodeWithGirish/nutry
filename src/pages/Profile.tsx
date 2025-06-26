@@ -37,6 +37,9 @@ import {
   Star,
   CheckCircle,
   Loader2,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface Order {

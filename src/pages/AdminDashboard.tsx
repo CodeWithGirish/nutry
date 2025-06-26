@@ -1020,13 +1020,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Helper function for consistent order ID formatting
-  const formatOrderId = (orderId: string) => {
-    // Extract first 8 characters and format as #N followed by the ID
-    const shortId = orderId.substring(0, 8).toUpperCase();
-    return `#N${shortId}`;
-  };
-
   // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {

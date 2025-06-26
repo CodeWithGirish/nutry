@@ -20,6 +20,14 @@ This guide will help you set up the complete NutriVault eCommerce platform with 
 3. Copy and paste the entire contents of `database-production-setup.sql`
 4. Click **Run**
 
+### Step 2: Set Up Image Storage
+
+1. In the same **SQL Editor**
+2. Copy and paste the entire contents of `db/storage-setup.sql`
+3. Click **Run**
+4. This creates the storage bucket for product images
+5. See `IMAGE_STORAGE_SETUP.md` for detailed instructions
+
 This will create:
 
 - ✅ Complete database schema (profiles, products, orders, etc.)

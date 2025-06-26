@@ -293,23 +293,23 @@ const Products = () => {
 
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="container mx-auto px-4 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 {categoryFilter
                   ? `${categoryFilter.charAt(0).toUpperCase()}${categoryFilter.slice(1)}`
                   : searchQuery
                     ? `Search Results for "${searchQuery}"`
                     : "Our Products"}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Discover our premium collection of nuts, dried fruits, and
                 healthy snacks
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge className="bg-brand-100 text-brand-700 text-lg px-4 py-2">
+            <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
+              <Badge className="bg-brand-100 text-brand-700 text-sm sm:text-base lg:text-lg px-3 py-1 sm:px-4 sm:py-2">
                 {filteredProducts.length} Products
               </Badge>
               {!loading && (
@@ -320,7 +320,7 @@ const Products = () => {
                   className="flex items-center gap-2"
                 >
                   <Package className="h-4 w-4" />
-                  Refresh
+                  <span className="hidden sm:inline">Refresh</span>
                 </Button>
               )}
             </div>
@@ -328,12 +328,12 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardContent className="p-6">
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <Card className="lg:sticky lg:top-24">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5 text-brand-600" />
@@ -485,16 +485,16 @@ const Products = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <span className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                   Showing {filteredProducts.length} of {products.length}{" "}
                   products
                 </span>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[180px] lg:w-[200px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -512,7 +512,7 @@ const Products = () => {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <Button
                   variant={viewMode === "grid" ? "default" : "outline"}
                   size="sm"
@@ -626,8 +626,8 @@ const Products = () => {
               <div
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    : "space-y-6"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+                    : "space-y-4 sm:space-y-6"
                 }
               >
                 {filteredProducts.map((product) => (

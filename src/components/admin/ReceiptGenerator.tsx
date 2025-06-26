@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
-import { formatPrice, formatDate } from "@/lib/utils";
+import { formatPrice, formatDate, formatOrderId } from "@/lib/utils";
 import type { Order } from "@/lib/supabase";
 
 interface ReceiptGeneratorProps {
@@ -184,7 +184,7 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
               <h1>🥜 NutriVault</h1>
               <p class="subtitle">Premium Dry Fruits & Healthy Snacks</p>
             </div>
-            
+
             <div class="receipt-body">
               <!-- Order Information -->
               <div class="receipt-section">

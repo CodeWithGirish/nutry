@@ -683,6 +683,7 @@ const AdminDashboard = () => {
       setStats({
         totalOrders: ordersCount || 0,
         totalRevenue,
+        periodRevenue,
         totalProducts: productsCount || 0,
         totalCustomers: customersCount || 0,
         pendingOrders: pendingOrdersCount || 0,

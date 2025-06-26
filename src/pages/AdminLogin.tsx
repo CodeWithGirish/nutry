@@ -160,7 +160,7 @@ const AdminLogin = () => {
                   Quick Login (Demo)
                 </p>
               </div>
-              {MOCK_ADMIN_CREDENTIALS.map((cred) => (
+              {DEMO_CREDENTIALS.map((cred) => (
                 <Button
                   key={cred.email}
                   variant="outline"

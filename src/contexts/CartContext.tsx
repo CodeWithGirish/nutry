@@ -377,6 +377,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description: "Admin accounts cannot modify cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (quantity <= 0) {
       await removeFromCart(cartItemId);
       return;

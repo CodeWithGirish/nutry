@@ -96,24 +96,30 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <div className="bg-gradient-to-r from-brand-500 to-brand-600 p-2 rounded-lg">
-              <span className="text-white font-bold text-xl">🥜</span>
+              <span className="text-white font-bold text-lg sm:text-xl">
+                🥜
+              </span>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-brand-800">NutriVault</h1>
-              <p className="text-xs text-brand-600">Premium Dry Fruits</p>
+            <div className="hidden xs:block sm:block">
+              <h1 className="text-lg sm:text-xl font-bold text-brand-800">
+                NutriVault
+              </h1>
+              <p className="text-xs text-brand-600 hidden sm:block">
+                Premium Dry Fruits
+              </p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-4 lg:space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-brand-600",
+                  "text-sm lg:text-base font-medium transition-colors hover:text-brand-600 whitespace-nowrap",
                   isActive(item.href)
                     ? "text-brand-600 border-b-2 border-brand-600 pb-1"
                     : "text-gray-700",
@@ -137,24 +143,24 @@ const Navigation = () => {
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-64"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-48 lg:w-64 xl:w-72"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               </form>
             )}
 
             {/* User Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {user && !isAdmin && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="relative"
+                  className="relative hidden sm:flex"
                   onClick={() => navigate("/wishlist")}
                 >
-                  <Heart className="h-5 w-5" />
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
                   {wishlistCount > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
+                    <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
                       {wishlistCount}
                     </Badge>
                   )}
@@ -165,12 +171,12 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="relative"
+                  className="relative hidden sm:flex"
                   onClick={() => navigate("/cart")}
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                   {cartCount > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
+                    <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
                       {cartCount}
                     </Badge>
                   )}
@@ -183,10 +189,10 @@ const Navigation = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1 sm:gap-2"
                     >
-                      <User className="h-5 w-5" />
-                      <span className="hidden md:inline text-sm">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="hidden lg:inline text-sm max-w-20 truncate">
                         {profile?.full_name || "User"}
                       </span>
                     </Button>
@@ -229,9 +235,10 @@ const Navigation = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/login")}
+                  className="flex items-center gap-1 sm:gap-2"
                 >
-                  <User className="h-5 w-5" />
-                  <span className="hidden md:inline ml-2">Sign In</span>
+                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden lg:inline text-sm">Sign In</span>
                 </Button>
               )}
             </div>
@@ -254,8 +261,8 @@ const Navigation = () => {
 
         {/* Mobile menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-4">
+          <div className="md:hidden border-t border-gray-200 py-4 bg-white shadow-lg">
+            <div className="flex flex-col space-y-4 px-2">
               {/* Mobile search - Hidden for admin users */}
               {!isAdmin && (
                 <form onSubmit={handleSearch} className="relative">
@@ -264,20 +271,20 @@ const Navigation = () => {
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </form>
               )}
 
               {/* Mobile navigation */}
-              <nav className="flex flex-col space-y-2">
+              <nav className="flex flex-col space-y-1">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      "text-sm font-medium py-2 px-3 rounded-lg transition-colors",
+                      "text-base font-medium py-3 px-4 rounded-lg transition-colors",
                       isActive(item.href)
                         ? "bg-brand-100 text-brand-700"
                         : "text-gray-700 hover:bg-gray-100",
@@ -289,12 +296,56 @@ const Navigation = () => {
                 ))}
               </nav>
 
+              {/* Mobile user actions */}
+              {user && !isAdmin && (
+                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
+                  <Link
+                    to="/wishlist"
+                    className="flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <Heart className="h-5 w-5" />
+                      Wishlist
+                    </span>
+                    {wishlistCount > 0 && (
+                      <Badge className="bg-brand-500 text-white">
+                        {wishlistCount}
+                      </Badge>
+                    )}
+                  </Link>
+                  <Link
+                    to="/cart"
+                    className="flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <ShoppingCart className="h-5 w-5" />
+                      Cart
+                    </span>
+                    {cartCount > 0 && (
+                      <Badge className="bg-brand-500 text-white">
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-3 py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User className="h-5 w-5" />
+                    Profile
+                  </Link>
+                </div>
+              )}
+
               {/* Mobile auth actions */}
               {!user && (
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
                   <Button
                     variant="outline"
-                    className="w-full"
+                    className="w-full py-3"
                     onClick={() => {
                       navigate("/login");
                       setIsMobileMenuOpen(false);
@@ -303,7 +354,7 @@ const Navigation = () => {
                     Sign In
                   </Button>
                   <Button
-                    className="w-full bg-brand-600 hover:bg-brand-700"
+                    className="w-full bg-brand-600 hover:bg-brand-700 py-3"
                     onClick={() => {
                       navigate("/signup");
                       setIsMobileMenuOpen(false);

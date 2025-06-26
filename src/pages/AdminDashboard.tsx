@@ -436,12 +436,28 @@ const AdminDashboard = () => {
       setOrders(enrichedOrders);
       console.log("Orders fetched successfully:", enrichedOrders.length);
     } catch (error: any) {
-      console.error("Error fetching orders:", error.message || error);
+      console.error("Error fetching orders:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+        full_error: error,
+      });
       setOrders([]);
-      // Show user-friendly error
+
+      // Determine error type and show appropriate message
+      let errorMessage = "Unable to load orders";
+      if (error.message?.includes("Failed to fetch") || error.status === 404) {
+        errorMessage =
+          "Database connection unavailable. Please check your internet connection.";
+      } else if (error.code) {
+        errorMessage = `Database error (${error.code}): ${error.message}`;
+      }
+
       toast({
         title: "Orders Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

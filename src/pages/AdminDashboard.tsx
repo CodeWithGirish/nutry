@@ -172,7 +172,7 @@ const AdminDashboard = () => {
         description:
           "Raw, unsalted almonds packed with protein and healthy fats.",
         category: "Nuts",
-        image_url: "���",
+        image_url: "🥜",
         images: ["🥜"],
         prices: JSON.stringify([
           { weight: "250g", price: 24.99 },
@@ -1461,7 +1461,7 @@ const AdminDashboard = () => {
                       </div>
 
                       {/* Image Upload */}
-                      <ImageUpload
+                      <MultiImageUpload
                         onImagesChange={(images) =>
                           setNewProduct({
                             ...newProduct,
@@ -1470,6 +1470,8 @@ const AdminDashboard = () => {
                           })
                         }
                         existingImages={newProduct.images}
+                        maxImages={10}
+                        showPrimaryBadge={true}
                       />
 
                       <div className="grid grid-cols-3 gap-4">

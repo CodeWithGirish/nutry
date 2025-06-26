@@ -331,7 +331,7 @@ const Products = () => {
       <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1 order-2 lg:order-1">
+          <div className="lg:col-span-1 order-1">
             <Card className="lg:sticky lg:top-24">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -485,7 +485,7 @@ const Products = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="lg:col-span-3 order-1 lg:order-2">
+          <div className="lg:col-span-3 order-2">
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 bg-white p-4 rounded-lg border border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">

@@ -330,6 +330,40 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       console.error("Error adding to cart:", error.message || error);
 
+      // Handle specific constraint violation errors
+      if (error.code === "23505" || error.message.includes("duplicate key")) {
+        console.log("Handling duplicate key constraint violation");
+
+        // Try to fetch and update the existing item as a fallback
+        try {
+          const { data: existingCartItem, error: fetchError } = await supabase
+            .from("cart")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("product_id", productId)
+            .eq("selected_weight", weight)
+            .single();
+
+          if (!fetchError && existingCartItem) {
+            await updateQuantity(
+              existingCartItem.id,
+              existingCartItem.quantity + quantity,
+            );
+            return;
+          }
+        } catch (fallbackError) {
+          console.error("Fallback update failed:", fallbackError);
+        }
+
+        // If all else fails, refresh cart to sync with database
+        await fetchCartItems();
+        toast({
+          title: "Item updated",
+          description: "Cart has been refreshed and item quantity updated",
+        });
+        return;
+      }
+
       if (isDatabaseError(error)) {
         // If database is unavailable, save to localStorage
         console.log("Adding to local cart due to database error");

@@ -124,7 +124,22 @@ const Profile = () => {
         .limit(5);
 
       if (ordersError) {
-        console.error("Error fetching orders:", ordersError);
+        console.error("Error fetching orders:", {
+          message: ordersError.message,
+          details: ordersError.details,
+          hint: ordersError.hint,
+          code: ordersError.code,
+          status: ordersError.status,
+          full_error: ordersError,
+        });
+
+        toast({
+          title: "Error loading orders",
+          description: ordersError.message?.includes("Failed to fetch")
+            ? "Database connection unavailable. Please check your internet connection."
+            : `Database error: ${ordersError.message}`,
+          variant: "destructive",
+        });
       } else {
         setOrders(ordersData || []);
 

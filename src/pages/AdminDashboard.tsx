@@ -1980,7 +1980,7 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders.map((order) => {
+                      {getFilteredOrders().map((order) => {
                         const validNextStatuses = getValidNextStatuses(
                           order.status,
                         );

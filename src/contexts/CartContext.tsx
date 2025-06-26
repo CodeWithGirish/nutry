@@ -30,7 +30,7 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [cartItems, setCartItems] = useState<
     (CartItem & { product: Product })[]
   >([]);

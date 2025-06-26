@@ -1156,13 +1156,24 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Revenue
+                    Revenue (
+                    {timeRange === "7d"
+                      ? "Last 7 days"
+                      : timeRange === "30d"
+                        ? "Last 30 days"
+                        : timeRange === "90d"
+                          ? "Last 90 days"
+                          : "Last year"}
+                    )
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatPrice(stats.totalRevenue)}
+                    {formatPrice(stats.periodRevenue)}
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     Today: {formatPrice(stats.todayRevenue)}
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    All-time: {formatPrice(stats.totalRevenue)}
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-600" />

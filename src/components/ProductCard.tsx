@@ -3,7 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Star, Eye, Gift, Scale } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  Star,
+  Eye,
+  Gift,
+  Scale,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { cn, formatPrice, parsePrices } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";

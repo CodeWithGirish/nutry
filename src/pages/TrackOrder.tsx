@@ -90,6 +90,7 @@ const TrackOrder = () => {
         `,
         )
         .eq("user_id", user.id)
+        .neq("status", "delivered") // Only show undelivered orders
         .order("created_at", { ascending: false });
 
       if (error) throw error;

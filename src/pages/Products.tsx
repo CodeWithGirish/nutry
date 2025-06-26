@@ -14,14 +14,13 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { Filter, Grid, List, Star, Package, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Filter, Grid, List, Star, Package, Loader2 } from "lucide-react";
 import { supabase, type Product } from "@/lib/supabase";
 import {
   parsePrices,
   getMinPrice,
   getMaxPrice,
   formatPrice,
-  cn,
 } from "@/lib/utils";
 import { mockProducts, isDatabaseError, getErrorMessage } from "@/lib/fallback";
 
@@ -45,7 +44,6 @@ const Products = () => {
   const [showInStock, setShowInStock] = useState(false);
   const [showOnSale, setShowOnSale] = useState(false);
   const [minRating, setMinRating] = useState(0);
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const [categories, setCategories] = useState<
     Array<{ name: string; count: number }>
@@ -336,30 +334,7 @@ const Products = () => {
           <div className="lg:col-span-1 order-1">
             <Card className="lg:sticky lg:top-24">
               <CardContent className="p-4 sm:p-6">
-                {/* Mobile Filter Header - Collapsible */}
-                <div className="lg:hidden">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-                    className="w-full flex items-center justify-between p-3 mb-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-5 w-5 text-brand-600" />
-                      <span className="font-semibold text-gray-900">Filters</span>
-                      <Badge className="bg-brand-100 text-brand-700 text-xs">
-                        {filteredProducts.length}
-                      </Badge>
-                    </div>
-                    {isMobileFiltersOpen ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-
-                {/* Desktop Filter Header - Always Visible */}
-                <div className="hidden lg:flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5 text-brand-600" />
                     <h2 className="text-lg font-semibold text-gray-900">
@@ -376,22 +351,8 @@ const Products = () => {
                   </Button>
                 </div>
 
-                {/* Filter Content */}
-                <div>
-                  {/* Mobile Clear All Button */}
-                  <div className="lg:hidden flex justify-end mb-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="text-brand-600"
-                    >
-                      Clear All
-                    </Button>
-                  </div>
-
-                  {/* Categories */}
-                  <div className="space-y-4 mb-6 lg:mb-8">
+                {/* Categories */}
+                <div className="space-y-4 mb-6 lg:mb-8">
                   <h3 className="font-medium text-gray-900">Categories</h3>
                   <div className="space-y-3">
                     {categories.map((category) => (

@@ -93,15 +93,33 @@ const ProductCard = ({ product }: ProductCardProps) => {
           onClick={handleQuickView}
         >
           <div className="w-full h-full flex items-center justify-center">
-            {productImages[currentImageIndex]?.startsWith("http") ? (
+            {productImages[currentImageIndex]?.startsWith("http") ||
+            productImages[currentImageIndex]?.startsWith("blob:") ? (
               <img
                 src={productImages[currentImageIndex]}
                 alt={product.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to emoji if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const emojiDiv = target.nextElementSibling as HTMLDivElement;
+                  if (emojiDiv) {
+                    emojiDiv.style.display = "flex";
+                  }
+                }}
               />
-            ) : (
-              <div className="text-6xl">{productImages[currentImageIndex]}</div>
-            )}
+            ) : null}
+            <div
+              className={`text-6xl w-full h-full flex items-center justify-center ${
+                productImages[currentImageIndex]?.startsWith("http") ||
+                productImages[currentImageIndex]?.startsWith("blob:")
+                  ? "hidden"
+                  : "flex"
+              }`}
+            >
+              {productImages[currentImageIndex] || "📦"}
+            </div>
           </div>
 
           {/* Image Navigation - only show if multiple images */}

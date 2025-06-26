@@ -322,6 +322,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           setCartItems((prev) => [...prev, enrichedCartItem]);
         }
 
+        // Refresh cart to ensure UI is in sync with database
+        await fetchCartItems();
+
         toast({
           title: "Added to cart",
           description: "Item has been added to your cart",

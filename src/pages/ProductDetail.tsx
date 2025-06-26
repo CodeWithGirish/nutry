@@ -186,23 +186,23 @@ const ProductDetail = () => {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-8">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8 overflow-x-auto">
           <button
             onClick={() => navigate("/products")}
-            className="flex items-center gap-1 hover:text-brand-600"
+            className="flex items-center gap-1 hover:text-brand-600 whitespace-nowrap"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             Back to Products
           </button>
           <span>/</span>
-          <span>{product.category}</span>
+          <span className="whitespace-nowrap">{product.category}</span>
           <span>/</span>
-          <span className="text-gray-900">{product.name}</span>
+          <span className="text-gray-900 truncate">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Images */}
           <div>
             <ProductImageGallery
@@ -216,34 +216,36 @@ const ProductDetail = () => {
           </div>
 
           {/* Product Information */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 order-2 lg:order-2">
             {/* Header */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-brand-100 text-brand-700">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <Badge className="bg-brand-100 text-brand-700 text-xs sm:text-sm">
                   {product.category}
                 </Badge>
                 {product.is_organic && (
-                  <Badge className="bg-green-100 text-green-700">Organic</Badge>
+                  <Badge className="bg-green-100 text-green-700 text-xs sm:text-sm">
+                    Organic
+                  </Badge>
                 )}
                 {!product.in_stock && (
-                  <Badge className="bg-red-100 text-red-700">
+                  <Badge className="bg-red-100 text-red-700 text-xs sm:text-sm">
                     Out of Stock
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
                 {product.name}
               </h1>
 
               {/* Rating */}
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       className={cn(
-                        "h-5 w-5",
+                        "h-4 w-4 sm:h-5 sm:w-5",
                         i < Math.floor(product.rating)
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-gray-300",
@@ -251,47 +253,51 @@ const ProductDetail = () => {
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600">
                   {product.rating} ({product.review_count} reviews)
                 </span>
               </div>
 
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                 {product.description}
               </p>
             </div>
 
             {/* Pricing */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <span className="text-3xl font-bold text-brand-600">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <span className="text-2xl sm:text-3xl font-bold text-brand-600">
                   ${selectedPrice.toFixed(2)}
                 </span>
                 {product.original_price &&
                   product.original_price > selectedPrice && (
                     <>
-                      <span className="text-xl text-gray-500 line-through">
+                      <span className="text-lg sm:text-xl text-gray-500 line-through">
                         ${product.original_price.toFixed(2)}
                       </span>
-                      <Badge className="bg-red-100 text-red-700">
+                      <Badge className="bg-red-100 text-red-700 text-xs sm:text-sm">
                         {discountPercentage}% Off
                       </Badge>
                     </>
                   )}
               </div>
-              <p className="text-sm text-gray-500">per {selectedWeight}</p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                per {selectedWeight}
+              </p>
             </div>
 
             {/* Weight Selection */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900">Select Weight:</h3>
-              <div className="flex gap-3">
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                Select Weight:
+              </h3>
+              <div className="flex gap-2 sm:gap-3 flex-wrap">
                 {product.prices.map((price) => (
                   <button
                     key={price.weight}
                     onClick={() => setSelectedWeight(price.weight)}
                     className={cn(
-                      "px-4 py-2 border rounded-lg text-sm font-medium transition-colors",
+                      "px-3 sm:px-4 py-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors",
                       selectedWeight === price.weight
                         ? "border-brand-500 bg-brand-50 text-brand-700"
                         : "border-gray-300 hover:border-gray-400",
@@ -308,44 +314,56 @@ const ProductDetail = () => {
 
             {/* Quantity */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900">Quantity:</h3>
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                Quantity:
+              </h3>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1}
+                  className="h-8 w-8 sm:h-10 sm:w-10 p-0"
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
+                <span className="w-12 text-center font-medium text-sm sm:text-base">
+                  {quantity}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setQuantity(quantity + 1)}
+                  className="h-8 w-8 sm:h-10 sm:w-10 p-0"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4">
-              <div className="flex gap-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex gap-3 sm:gap-4">
                 <Button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-brand-600 hover:bg-brand-700"
+                  className="flex-1 bg-brand-600 hover:bg-brand-700 text-sm sm:text-base py-2 sm:py-3"
                   disabled={!product.in_stock || addingToCart}
                 >
                   {addingToCart ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding...
+                      <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      <span className="hidden sm:inline">Adding...</span>
+                      <span className="sm:hidden">Add...</span>
                     </>
                   ) : (
                     <>
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      {product.in_stock ? "Add to Cart" : "Notify Me"}
+                      <ShoppingCart className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">
+                        {product.in_stock ? "Add to Cart" : "Notify Me"}
+                      </span>
+                      <span className="sm:hidden">
+                        {product.in_stock ? "Add" : "Notify"}
+                      </span>
                     </>
                   )}
                 </Button>
@@ -353,10 +371,11 @@ const ProductDetail = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => setIsWishlisted(!isWishlisted)}
+                  className="h-10 w-10 sm:h-12 sm:w-12"
                 >
                   <Heart
                     className={cn(
-                      "h-4 w-4",
+                      "h-4 w-4 sm:h-5 sm:w-5",
                       isWishlisted ? "fill-red-500 text-red-500" : "",
                     )}
                   />
@@ -367,15 +386,18 @@ const ProductDetail = () => {
                 <Button
                   onClick={handleBuyNow}
                   variant="outline"
-                  className="w-full border-brand-300 text-brand-700 hover:bg-brand-50"
+                  className="w-full border-brand-300 text-brand-700 hover:bg-brand-50 text-sm sm:text-base py-2 sm:py-3"
                   disabled={addingToCart}
                 >
                   Buy Now
                 </Button>
               )}
 
-              <Button variant="outline" className="w-full">
-                <Gift className="mr-2 h-4 w-4" />
+              <Button
+                variant="outline"
+                className="w-full text-sm sm:text-base py-2 sm:py-3"
+              >
+                <Gift className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Add Gift Wrapping
               </Button>
             </div>

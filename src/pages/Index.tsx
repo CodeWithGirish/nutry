@@ -183,14 +183,14 @@ const Index = () => {
           }
         ></div>
 
-        <div className="relative container mx-auto px-4 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+        <div className="relative container mx-auto px-4 py-12 sm:py-16 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
               <div className="space-y-4">
-                <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-sm sm:text-base">
                   🌟 Premium Quality Guaranteed
                 </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
                   Premium
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">
                     {" "}
@@ -198,22 +198,22 @@ const Index = () => {
                   </span>
                   & Healthy Snacks
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
+                <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
                   Discover the finest collection of naturally dried fruits,
                   premium nuts, and healthy snacks. Sourced directly from the
                   best farms, delivered fresh to your doorstep.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white"
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white w-full sm:w-auto"
                   onClick={() => navigate("/products")}
                 >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Shop Now
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
                 </Button>
 
                 {!user && (
@@ -221,51 +221,81 @@ const Index = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => navigate("/signup")}
-                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-50 w-full sm:w-auto"
                   >
-                    <Heart className="h-5 w-5 mr-2" />
+                    <Heart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Join NutriVault
                   </Button>
                 )}
               </div>
 
-              <div className="flex items-center gap-8 pt-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 pt-4 justify-center lg:justify-start">
                 <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="font-semibold text-gray-900">4.8/5</span>
-                  <span className="text-gray-600">(2,000+ reviews)</span>
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 fill-current" />
+                  <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                    4.8/5
+                  </span>
+                  <span className="text-gray-600 text-sm sm:text-base">
+                    (2,000+ reviews)
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Truck className="h-5 w-5 text-green-600" />
-                  <span className="text-gray-600">Free delivery on ₹999+</span>
+                  <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  <span className="text-gray-600 text-sm sm:text-base">
+                    Free delivery on ₹999+
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4 transform rotate-3">
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-2xl shadow-lg">
-                    <div className="text-4xl mb-2">🌰</div>
-                    <h3 className="font-semibold">Premium Almonds</h3>
-                    <p className="text-sm text-gray-600">California's finest</p>
+            <div className="relative mt-8 lg:mt-0">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 transform rotate-2 lg:rotate-3">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">
+                      🌰
+                    </div>
+                    <h3 className="font-semibold text-sm sm:text-base">
+                      Premium Almonds
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      California's finest
+                    </p>
                   </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-lg">
-                    <div className="text-4xl mb-2">🍇</div>
-                    <h3 className="font-semibold">Dried Fruits</h3>
-                    <p className="text-sm text-gray-600">Natural sweetness</p>
+                  <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">
+                      🍇
+                    </div>
+                    <h3 className="font-semibold text-sm sm:text-base">
+                      Dried Fruits
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Natural sweetness
+                    </p>
                   </div>
                 </div>
-                <div className="space-y-4 mt-8">
-                  <div className="bg-white p-6 rounded-2xl shadow-lg">
-                    <div className="text-4xl mb-2">🥜</div>
-                    <h3 className="font-semibold">Mixed Nuts</h3>
-                    <p className="text-sm text-gray-600">Energy packed</p>
+                <div className="space-y-3 sm:space-y-4 mt-6 sm:mt-8">
+                  <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">
+                      🥜
+                    </div>
+                    <h3 className="font-semibold text-sm sm:text-base">
+                      Mixed Nuts
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Energy packed
+                    </p>
                   </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-lg">
-                    <div className="text-4xl mb-2">🍯</div>
-                    <h3 className="font-semibold">Medjool Dates</h3>
-                    <p className="text-sm text-gray-600">Nature's candy</p>
+                  <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">
+                      🍯
+                    </div>
+                    <h3 className="font-semibold text-sm sm:text-base">
+                      Medjool Dates
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Nature's candy
+                    </p>
                   </div>
                 </div>
               </div>
@@ -292,19 +322,19 @@ const Index = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
               Explore Our Categories
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
               Discover our carefully curated selection of premium dry fruits,
               nuts, and healthy snacks
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {categories.map((category, index) => (
               <Card
                 key={index}
@@ -315,24 +345,28 @@ const Index = () => {
                   )
                 }
               >
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-4 sm:p-6 text-center">
                   <div
-                    className={`bg-gradient-to-br ${category.color} rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}
+                    className={`bg-gradient-to-br ${category.color} rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}
                   >
-                    <span className="text-3xl">{category.image}</span>
+                    <span className="text-2xl sm:text-3xl">
+                      {category.image}
+                    </span>
                   </div>
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">
+                  <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-2">
                     {category.name}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-2">
+                  <p className="text-gray-600 text-xs sm:text-sm mb-2">
                     {category.description}
                   </p>
-                  <Badge variant="secondary" className="mb-4">
+                  <Badge variant="secondary" className="mb-3 sm:mb-4 text-xs">
                     {category.count}
                   </Badge>
                   <div className="flex items-center justify-center text-orange-600 group-hover:text-orange-700">
-                    <span className="text-sm font-medium">Explore</span>
-                    <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    <span className="text-xs sm:text-sm font-medium">
+                      Explore
+                    </span>
+                    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </CardContent>
               </Card>
@@ -342,14 +376,14 @@ const Index = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16">
+      <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 sm:mb-12">
+            <div className="text-center lg:text-left mb-6 lg:mb-0">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
                 Featured Products
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-lg sm:text-xl text-gray-600">
                 Our most popular and highest-rated products
               </p>
             </div>
@@ -364,27 +398,27 @@ const Index = () => {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(8)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-gray-200 animate-pulse rounded-lg h-96"
+                  className="bg-gray-200 animate-pulse rounded-lg h-80 sm:h-96"
                 ></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
 
-          <div className="text-center mt-8 lg:hidden">
+          <div className="text-center mt-6 sm:mt-8 lg:hidden">
             <Button
               variant="outline"
               onClick={() => navigate("/products")}
-              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+              className="border-orange-300 text-orange-700 hover:bg-orange-50 w-full sm:w-auto"
             >
               View All Products
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -394,28 +428,30 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-gradient-to-br from-orange-50 to-amber-50">
+      <section className="py-12 sm:py-16 bg-gradient-to-br from-orange-50 to-amber-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
               Why Choose NutriVault?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
               We're committed to bringing you the highest quality dry fruits and
               nuts
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
               <div key={index} className="text-center">
-                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <feature.icon className="h-8 w-8 text-orange-600" />
+                <div className="bg-white rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+                  <feature.icon className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
                 </div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2">
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-sm sm:text-base text-gray-600">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -423,16 +459,18 @@ const Index = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-orange-600 to-red-600 text-white">
+      <section className="py-12 sm:py-16 bg-gradient-to-r from-orange-600 to-red-600 text-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <stat.icon className="h-12 w-12 mx-auto mb-4 opacity-90" />
-                <div className="text-3xl lg:text-4xl font-bold mb-2">
+                <stat.icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 mx-auto mb-3 sm:mb-4 opacity-90" />
+                <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 sm:mb-2">
                   {stat.value}
                 </div>
-                <div className="text-orange-100">{stat.label}</div>
+                <div className="text-orange-100 text-xs sm:text-sm lg:text-base">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>

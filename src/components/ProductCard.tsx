@@ -89,7 +89,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative">
         {/* Product Image Carousel */}
         <div
-          className="aspect-square overflow-hidden bg-gradient-to-br from-warm-50 to-brand-50 cursor-pointer relative group"
+          className="aspect-square overflow-hidden bg-gradient-to-br from-warm-50 to-brand-50 cursor-pointer relative group rounded-t-lg"
           onClick={handleQuickView}
         >
           <div className="w-full h-full flex items-center justify-center">
@@ -182,15 +182,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Action Buttons */}
         <div
           className={cn(
-            "absolute top-3 right-3 flex flex-col gap-2 transition-opacity duration-200",
-            isHovered ? "opacity-100" : "opacity-0",
+            "absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1 sm:gap-2 transition-opacity duration-200",
+            "sm:opacity-0 sm:group-hover:opacity-100 opacity-100", // Always visible on mobile, hover on desktop
           )}
         >
           <Button
             size="sm"
             variant="secondary"
-            className="h-8 w-8 p-0 bg-white/90 backdrop-blur-sm"
-            onClick={() => {
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
               if (isWishlisted) {
                 removeFromWishlist(product.id);
               } else {
@@ -205,7 +206,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           >
             <Heart
               className={cn(
-                "h-4 w-4",
+                "h-3 w-3 sm:h-4 sm:w-4",
                 isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600",
               )}
             />
@@ -213,33 +214,40 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Button
             size="sm"
             variant="secondary"
-            className="h-8 w-8 p-0 bg-white/90 backdrop-blur-sm"
-            onClick={handleQuickView}
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/90 backdrop-blur-sm shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuickView();
+            }}
           >
-            <Eye className="h-4 w-4 text-gray-600" />
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
           </Button>
           <Button
             size="sm"
             variant="secondary"
-            className="h-8 w-8 p-0 bg-white/90 backdrop-blur-sm"
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/90 backdrop-blur-sm shadow-sm hidden sm:flex"
           >
-            <Gift className="h-4 w-4 text-gray-600" />
+            <Gift className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
           </Button>
         </div>
 
         {/* Quick Add to Cart (appears on hover) */}
         <div
           className={cn(
-            "absolute bottom-3 left-3 right-3 transition-all duration-300",
-            isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
+            "absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 transition-all duration-300",
+            "sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0", // Hidden on mobile, shown on desktop hover
+            "hidden sm:block", // Hide on mobile to save space
           )}
         >
           <Button
-            className="w-full bg-brand-600 hover:bg-brand-700 text-white"
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm"
             disabled={!product.in_stock || isAdmin}
-            onClick={handleAddToCart}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart();
+            }}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
+            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
             {isAdmin
               ? "Admin View"
               : product.in_stock
@@ -249,7 +257,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       </div>
 
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
         {/* Category */}
         <Badge
           variant="outline"
@@ -260,19 +268,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Product Name */}
         <h3
-          className="font-semibold text-gray-900 text-lg leading-tight line-clamp-2 cursor-pointer hover:text-brand-600"
+          className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg leading-tight line-clamp-2 cursor-pointer hover:text-brand-600 transition-colors"
           onClick={handleQuickView}
         >
           {product.name}
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-600 line-clamp-2">
+        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
           {product.description}
         </p>
 
         {/* Rating */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -292,18 +300,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
 
         {/* Weight Selection */}
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
           <div className="flex items-center gap-1 text-xs text-gray-600">
             <Scale className="h-3 w-3" />
             <span>Weight:</span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {prices.map((weight) => (
               <button
                 key={weight.weight}
                 onClick={() => setSelectedWeight(weight.weight)}
                 className={cn(
-                  "px-2 py-1 text-xs rounded border transition-colors",
+                  "px-2 py-1 text-xs rounded border transition-colors flex-shrink-0",
                   selectedWeight === weight.weight
                     ? "bg-brand-100 border-brand-300 text-brand-700"
                     : "border-gray-200 text-gray-600 hover:bg-gray-50",
@@ -316,10 +324,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
 
         {/* Pricing */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-brand-600">
+        <div className="flex items-center justify-between pt-1">
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+              <span className="text-lg sm:text-xl font-bold text-brand-600">
                 {formatPrice(selectedPrice)}
               </span>
               {product.original_price &&
@@ -334,11 +342,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <Button
             size="sm"
-            className="bg-brand-600 hover:bg-brand-700 text-white"
+            className="bg-brand-600 hover:bg-brand-700 text-white ml-2 flex-shrink-0"
             disabled={!product.in_stock || isAdmin}
             onClick={handleAddToCart}
           >
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </CardContent>

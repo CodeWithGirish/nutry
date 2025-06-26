@@ -151,132 +151,242 @@ const Cart = () => {
       <Navigation />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          <Badge className="bg-brand-100 text-brand-700 text-lg px-4 py-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center sm:text-left">
+            Shopping Cart
+          </h1>
+          <Badge className="bg-brand-100 text-brand-700 text-sm sm:text-base lg:text-lg px-3 py-1 sm:px-4 sm:py-2 mx-auto sm:mx-0">
             {getCartCount()} {getCartCount() === 1 ? "Item" : "Items"}
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 order-2 lg:order-1">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Cart Items</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-lg sm:text-xl">Cart Items</CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={clearCart}
                   className="text-red-600 hover:text-red-700"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear Cart
+                  <Trash2 className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Clear Cart</span>
+                  <span className="sm:hidden">Clear</span>
                 </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg"
                   >
-                    {/* Product Image */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center overflow-hidden">
-                      {(() => {
-                        // Use first image from images array or fallback to image_url
-                        const primaryImage =
-                          item.product?.images && item.product.images.length > 0
-                            ? item.product.images[0]
-                            : item.product?.image_url || "🥜";
+                    {/* Mobile Layout */}
+                    <div className="flex sm:hidden gap-3">
+                      {/* Product Image */}
+                      <div className="w-16 h-16 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {(() => {
+                          const primaryImage =
+                            item.product?.images &&
+                            item.product.images.length > 0
+                              ? item.product.images[0]
+                              : item.product?.image_url || "🥜";
 
-                        return primaryImage?.startsWith("http") ||
-                          primaryImage?.startsWith("blob:") ? (
-                          <img
-                            src={primaryImage}
-                            alt={item.product?.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<span class="text-3xl">${primaryImage}</span>`;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span className="text-3xl">{primaryImage}</span>
-                        );
-                      })()}
-                    </div>
+                          return primaryImage?.startsWith("http") ||
+                            primaryImage?.startsWith("blob:") ? (
+                            <img
+                              src={primaryImage}
+                              alt={item.product?.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<span class="text-2xl">${primaryImage}</span>`;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-2xl">{primaryImage}</span>
+                          );
+                        })()}
+                      </div>
 
-                    {/* Product Details */}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {item.product?.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {item.selected_weight}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        {item.product?.is_organic && (
-                          <Badge className="bg-green-100 text-green-700 text-xs">
-                            Organic
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 mb-1 text-sm">
+                          {item.product?.name}
+                        </h3>
+                        <p className="text-xs text-gray-600 mb-2">
+                          {item.selected_weight}
+                        </p>
+                        <div className="flex items-center gap-1 mb-2">
+                          {item.product?.is_organic && (
+                            <Badge className="bg-green-100 text-green-700 text-xs">
+                              Organic
+                            </Badge>
+                          )}
+                          <Badge className="bg-gray-100 text-gray-700 text-xs">
+                            {item.product?.category}
                           </Badge>
-                        )}
-                        <Badge className="bg-gray-100 text-gray-700 text-xs">
-                          {item.product?.category}
-                        </Badge>
+                        </div>
+
+                        {/* Mobile Price and Controls */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
+                              disabled={item.quantity <= 1 || loading}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-6 text-center font-medium text-sm">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
+                              disabled={loading}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900 text-sm">
+                              $
+                              {(item.selected_price * item.quantity).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              ${item.selected_price.toFixed(2)} each
+                            </p>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-600 hover:text-red-700 h-7 w-7 p-0"
+                            disabled={loading}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-3">
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex sm:items-center sm:gap-4 w-full">
+                      {/* Product Image */}
+                      <div className="w-20 h-20 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center overflow-hidden">
+                        {(() => {
+                          const primaryImage =
+                            item.product?.images &&
+                            item.product.images.length > 0
+                              ? item.product.images[0]
+                              : item.product?.image_url || "🥜";
+
+                          return primaryImage?.startsWith("http") ||
+                            primaryImage?.startsWith("blob:") ? (
+                            <img
+                              src={primaryImage}
+                              alt={item.product?.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<span class="text-3xl">${primaryImage}</span>`;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-3xl">{primaryImage}</span>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {item.product?.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {item.selected_weight}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {item.product?.is_organic && (
+                            <Badge className="bg-green-100 text-green-700 text-xs">
+                              Organic
+                            </Badge>
+                          )}
+                          <Badge className="bg-gray-100 text-gray-700 text-xs">
+                            {item.product?.category}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          disabled={item.quantity <= 1 || loading}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-8 text-center font-medium">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          disabled={loading}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900">
+                          ${(item.selected_price * item.quantity).toFixed(2)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          ${item.selected_price.toFixed(2)} each
+                        </p>
+                      </div>
+
+                      {/* Remove Button */}
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
-                        disabled={item.quantity <= 1 || loading}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-8 text-center font-medium">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-600 hover:text-red-700"
                         disabled={loading}
                       >
-                        <Plus className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-
-                    {/* Price */}
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">
-                        ${(item.selected_price * item.quantity).toFixed(2)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        ${item.selected_price.toFixed(2)} each
-                      </p>
-                    </div>
-
-                    {/* Remove Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={loading}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 ))}
               </CardContent>
@@ -350,8 +460,8 @@ const Cart = () => {
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <Card className="lg:sticky lg:top-24">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>

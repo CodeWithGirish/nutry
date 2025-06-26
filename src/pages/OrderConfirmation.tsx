@@ -31,7 +31,7 @@ import {
 } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { formatPrice, formatDate } from "@/lib/utils";
+import { formatPrice, formatDate, formatOrderId } from "@/lib/utils";
 
 interface EnrichedOrderItem extends OrderItem {
   product?: Product;
@@ -215,76 +215,76 @@ const OrderConfirmation = () => {
         <head>
           <title>NutriVault Receipt - Order #${order.id.slice(-8).toUpperCase()}</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              max-width: 800px; 
-              margin: 0 auto; 
+            body {
+              font-family: Arial, sans-serif;
+              max-width: 800px;
+              margin: 0 auto;
               padding: 20px;
               color: #333;
             }
-            .header { 
-              text-align: center; 
-              margin-bottom: 30px; 
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
               border-bottom: 2px solid #16a34a;
               padding-bottom: 20px;
             }
-            .company-name { 
-              font-size: 28px; 
-              font-weight: bold; 
-              color: #16a34a; 
+            .company-name {
+              font-size: 28px;
+              font-weight: bold;
+              color: #16a34a;
               margin-bottom: 5px;
             }
-            .order-info { 
-              display: grid; 
-              grid-template-columns: 1fr 1fr; 
-              gap: 20px; 
-              margin-bottom: 30px; 
+            .order-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 30px;
             }
-            .info-section { 
-              background: #f9f9f9; 
-              padding: 15px; 
-              border-radius: 8px; 
+            .info-section {
+              background: #f9f9f9;
+              padding: 15px;
+              border-radius: 8px;
             }
-            .info-title { 
-              font-weight: bold; 
-              margin-bottom: 10px; 
-              color: #16a34a; 
+            .info-title {
+              font-weight: bold;
+              margin-bottom: 10px;
+              color: #16a34a;
             }
-            .items-table { 
-              width: 100%; 
-              border-collapse: collapse; 
-              margin-bottom: 30px; 
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 30px;
             }
-            .items-table th, .items-table td { 
-              border: 1px solid #ddd; 
-              padding: 12px; 
-              text-align: left; 
+            .items-table th, .items-table td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: left;
             }
-            .items-table th { 
-              background-color: #16a34a; 
-              color: white; 
+            .items-table th {
+              background-color: #16a34a;
+              color: white;
             }
-            .totals { 
-              margin-left: auto; 
-              width: 300px; 
+            .totals {
+              margin-left: auto;
+              width: 300px;
             }
-            .total-row { 
-              display: flex; 
-              justify-content: space-between; 
-              padding: 8px 0; 
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
             }
-            .total-final { 
-              font-weight: bold; 
-              font-size: 18px; 
-              border-top: 2px solid #16a34a; 
-              padding-top: 8px; 
+            .total-final {
+              font-weight: bold;
+              font-size: 18px;
+              border-top: 2px solid #16a34a;
+              padding-top: 8px;
             }
-            .footer { 
-              text-align: center; 
-              margin-top: 40px; 
-              padding-top: 20px; 
-              border-top: 1px solid #ddd; 
-              color: #666; 
+            .footer {
+              text-align: center;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #ddd;
+              color: #666;
             }
             @media print {
               body { margin: 0; padding: 15px; }
@@ -306,7 +306,7 @@ const OrderConfirmation = () => {
               <div><strong>Status:</strong> ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</div>
               <div><strong>Payment:</strong> ${order.payment_method === "stripe" ? "Credit Card" : "Cash on Delivery"}</div>
             </div>
-            
+
             <div class="info-section">
               <div class="info-title">Shipping Address</div>
               <div><strong>Name:</strong> ${order.shipping_address?.fullName || "N/A"}</div>

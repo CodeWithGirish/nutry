@@ -171,13 +171,6 @@ const ImageUpload = ({
       } else if (failedUploads.length > 0) {
         throw new Error(`Failed to upload: ${failedUploads.join(", ")}`);
       }
-      const newImages = [...images, ...uploadedUrls];
-      updateImages(newImages);
-
-      toast({
-        title: "Images uploaded successfully",
-        description: `${uploadedUrls.length} image(s) uploaded.`,
-      });
     } catch (error: any) {
       console.error("Upload error:", error);
 

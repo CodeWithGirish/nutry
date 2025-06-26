@@ -103,10 +103,11 @@ const AdminLogin = () => {
     }
   };
 
-  const handleMockLogin = (credentials: AdminCredentials) => {
+  const handleMockLogin = (credentials: (typeof DEMO_CREDENTIALS)[0]) => {
     setEmail(credentials.email);
     setPassword(credentials.password);
     setError("");
+    setLoginAttempts(0);
   };
 
   return (

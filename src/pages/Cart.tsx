@@ -181,10 +181,33 @@ const Cart = () => {
                     className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg"
                   >
                     {/* Product Image */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center">
-                      <span className="text-3xl">
-                        {item.product?.image_url || "🥜"}
-                      </span>
+                    <div className="w-20 h-20 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center overflow-hidden">
+                      {(() => {
+                        // Use first image from images array or fallback to image_url
+                        const primaryImage =
+                          item.product?.images && item.product.images.length > 0
+                            ? item.product.images[0]
+                            : item.product?.image_url || "🥜";
+
+                        return primaryImage?.startsWith("http") ||
+                          primaryImage?.startsWith("blob:") ? (
+                          <img
+                            src={primaryImage}
+                            alt={item.product?.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<span class="text-3xl">${primaryImage}</span>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="text-3xl">{primaryImage}</span>
+                        );
+                      })()}
                     </div>
 
                     {/* Product Details */}

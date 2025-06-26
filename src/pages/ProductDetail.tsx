@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import ProductReviews from "@/components/ProductReviews";
+import ProductImageGallery from "@/components/ProductImageGallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -204,65 +205,14 @@ const ProductDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Images */}
           <div>
-            {(() => {
-              // Get all product images (including legacy single image)
-              const productImages =
+            <ProductImageGallery
+              images={
                 product.images && product.images.length > 0
                   ? product.images
-                  : [product.image_url];
-
-              const currentImage = productImages[selectedImageIndex];
-
-              return (
-                <>
-                  <Card className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="aspect-square bg-gradient-to-br from-warm-50 to-brand-50 flex items-center justify-center">
-                        {currentImage?.startsWith("http") ? (
-                          <img
-                            src={currentImage}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-9xl">{currentImage}</span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Thumbnail Images */}
-                  {productImages.length > 1 && (
-                    <div className="flex gap-4 mt-4 overflow-x-auto pb-2">
-                      {productImages.map((img, index) => (
-                        <Card
-                          key={index}
-                          className={cn(
-                            "w-20 h-20 cursor-pointer hover:ring-2 hover:ring-brand-500 transition-all flex-shrink-0",
-                            index === selectedImageIndex
-                              ? "ring-2 ring-brand-500"
-                              : "",
-                          )}
-                          onClick={() => setSelectedImageIndex(index)}
-                        >
-                          <CardContent className="p-0 w-full h-full flex items-center justify-center">
-                            {img?.startsWith("http") ? (
-                              <img
-                                src={img}
-                                alt={`${product.name} ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-2xl">{img}</span>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
+                  : [product.image_url]
+              }
+              productName={product.name}
+            />
           </div>
 
           {/* Product Information */}

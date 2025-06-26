@@ -340,7 +340,7 @@ const Products = () => {
                   <Button
                     variant="ghost"
                     onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-                    className="w-full flex items-center justify-between p-3 mb-4 bg-gray-50 hover:bg-gray-100 rounded-lg"
+                    className="w-full flex items-center justify-between p-3 mb-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200"
                   >
                     <div className="flex items-center gap-2">
                       <Filter className="h-5 w-5 text-brand-600" />

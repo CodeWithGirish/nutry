@@ -177,6 +177,13 @@ const AdminDashboard = () => {
     fetchData();
   }, [user, isAdmin, navigate]);
 
+  // Refresh stats when time range changes
+  useEffect(() => {
+    if (adminSession) {
+      fetchStats();
+    }
+  }, [timeRange]);
+
   // Fallback demo data
   const useFallbackData = () => {
     console.log("Using fallback demo data");

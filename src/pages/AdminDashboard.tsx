@@ -1860,6 +1860,111 @@ const AdminDashboard = () => {
                 </Button>
               </CardHeader>
               <CardContent>
+                {/* Order Filters */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="order-search"
+                      className="text-sm font-medium"
+                    >
+                      Search:
+                    </Label>
+                    <Input
+                      id="order-search"
+                      placeholder="Search orders, customers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-48"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="order-status"
+                      className="text-sm font-medium"
+                    >
+                      Status:
+                    </Label>
+                    <Select
+                      value={orderStatusFilter}
+                      onValueChange={setOrderStatusFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="order-date" className="text-sm font-medium">
+                      Date:
+                    </Label>
+                    <Select
+                      value={orderDateFilter}
+                      onValueChange={setOrderDateFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">Last Week</SelectItem>
+                        <SelectItem value="month">Last Month</SelectItem>
+                        <SelectItem value="quarter">Last Quarter</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {orderDateFilter === "custom" && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="start-date"
+                          className="text-sm font-medium"
+                        >
+                          From:
+                        </Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={orderStartDate}
+                          onChange={(e) => setOrderStartDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="end-date"
+                          className="text-sm font-medium"
+                        >
+                          To:
+                        </Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={orderEndDate}
+                          onChange={(e) => setOrderEndDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    Showing {getFilteredOrders().length} of {orders.length}{" "}
+                    orders
+                  </div>
+                </div>
                 <div className="border rounded-lg">
                   <Table>
                     <TableHeader>

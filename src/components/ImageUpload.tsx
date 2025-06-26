@@ -50,7 +50,7 @@ const ImageUpload = ({
     "🥨",
     "🫐",
     "🍊",
-    "🥥",
+    "���",
     "🍋",
     "🍓",
     "🥭",
@@ -184,9 +184,14 @@ const ImageUpload = ({
 
       // Show appropriate toast messages
       if (successfulUploads.length > 0 && failedUploads.length === 0) {
+        const hasTemporaryImages = successfulUploads.some((url) =>
+          url.startsWith("blob:"),
+        );
         toast({
           title: "Images uploaded successfully",
-          description: `${successfulUploads.length} image(s) uploaded.`,
+          description: hasTemporaryImages
+            ? `${successfulUploads.length} image(s) uploaded. Some are temporary - see storage setup guide.`
+            : `${successfulUploads.length} image(s) uploaded to permanent storage.`,
         });
       } else if (successfulUploads.length > 0 && failedUploads.length > 0) {
         toast({

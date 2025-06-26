@@ -63,48 +63,43 @@ const AdminLogin = () => {
       return;
     }
 
-    setLoading(true);
+    // Rate limiting - prevent brute force
+    if (loginAttempts >= 5) {
+      setError("Too many login attempts. Please wait before trying again.");
+      return;
+    }
+
     setError("");
 
     try {
-      // Check against mock credentials
-      const adminUser = MOCK_ADMIN_CREDENTIALS.find(
-        (admin) => admin.email === email && admin.password === password,
-      );
+      const success = await loginAdmin(email.trim(), password);
 
-      if (adminUser) {
-        // Store admin session in localStorage
-        const sessionData = {
-          id: `admin_${Date.now()}`,
-          email: adminUser.email,
-          name: adminUser.name,
-          role: adminUser.role,
-          loginTime: new Date().toISOString(),
-        };
-
-        localStorage.setItem("admin_session", JSON.stringify(sessionData));
-        console.log("Admin session stored:", sessionData);
-
+      if (success) {
         toast({
           title: "Admin Access Granted",
-          description: `Welcome ${adminUser.name}!`,
+          description: "Welcome to the admin dashboard!",
         });
 
-        // Force navigation with a small delay to ensure session is stored
-        setTimeout(() => {
-          console.log("Navigating to admin dashboard");
-          navigate("/admin-dashboard", { replace: true });
-        }, 100);
+        navigate("/admin-dashboard", { replace: true });
       } else {
+        setLoginAttempts((prev) => prev + 1);
         setError(
           "Invalid admin credentials. Please check your email and password.",
         );
+
+        // Reset password field for security
+        setPassword("");
+
+        // Show stronger warning after multiple attempts
+        if (loginAttempts >= 3) {
+          setError(
+            "Multiple failed attempts detected. Account may be temporarily locked.",
+          );
+        }
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
       setError("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 

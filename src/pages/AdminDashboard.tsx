@@ -695,9 +695,18 @@ const AdminDashboard = () => {
     } catch (error: any) {
       console.error("Error fetching stats:", error.message || error);
       // Use fallback stats with notification
+      const fallbackPeriodRevenue =
+        timeRange === "7d"
+          ? 15000
+          : timeRange === "30d"
+            ? 45000
+            : timeRange === "90d"
+              ? 95000
+              : 120000;
       setStats({
         totalOrders: 89,
         totalRevenue: 125000,
+        periodRevenue: fallbackPeriodRevenue,
         totalProducts: 25,
         totalCustomers: 156,
         pendingOrders: 3,

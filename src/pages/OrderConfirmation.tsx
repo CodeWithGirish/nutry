@@ -179,7 +179,7 @@ const OrderConfirmation = () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `NutriVault Order #${order.id.slice(-8).toUpperCase()}`,
+          title: `NutriVault Order ${formatOrderId(order)}`,
           text: `Order confirmed! Total: ${formatPrice(order.total_amount)}`,
           url: window.location.href,
         });

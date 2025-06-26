@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,30 +15,24 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-interface AdminCredentials {
-  email: string;
-  password: string;
-  name: string;
-  role: "admin" | "super_admin";
-}
-
-const MOCK_ADMIN_CREDENTIALS: AdminCredentials[] = [
+const DEMO_CREDENTIALS = [
   {
     email: "admin@nutrivault.com",
-    password: "admin123",
+    password: "Admin123!@#",
     name: "Admin User",
     role: "admin",
   },
   {
     email: "superadmin@nutrivault.com",
-    password: "super123",
+    password: "SuperAdmin123!@#",
     name: "Super Admin",
     role: "super_admin",
   },
   {
     email: "demo@nutrivault.com",
-    password: "demo123",
+    password: "Demo123!@#",
     name: "Demo Admin",
     role: "admin",
   },
@@ -48,10 +42,18 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   const navigate = useNavigate();
+  const { loginAdmin, loading, isAuthenticated } = useAdminAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/admin-dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,55 +63,51 @@ const AdminLogin = () => {
       return;
     }
 
-    setLoading(true);
+    // Rate limiting - prevent brute force
+    if (loginAttempts >= 5) {
+      setError("Too many login attempts. Please wait before trying again.");
+      return;
+    }
+
     setError("");
 
     try {
-      // Check against mock credentials
-      const adminUser = MOCK_ADMIN_CREDENTIALS.find(
-        (admin) => admin.email === email && admin.password === password,
-      );
+      const success = await loginAdmin(email.trim(), password);
 
-      if (adminUser) {
-        // Store admin session in localStorage
-        const sessionData = {
-          id: `admin_${Date.now()}`,
-          email: adminUser.email,
-          name: adminUser.name,
-          role: adminUser.role,
-          loginTime: new Date().toISOString(),
-        };
-
-        localStorage.setItem("admin_session", JSON.stringify(sessionData));
-        console.log("Admin session stored:", sessionData);
-
+      if (success) {
         toast({
           title: "Admin Access Granted",
-          description: `Welcome ${adminUser.name}!`,
+          description: "Welcome to the admin dashboard!",
         });
 
-        // Force navigation with a small delay to ensure session is stored
-        setTimeout(() => {
-          console.log("Navigating to admin dashboard");
-          navigate("/admin-dashboard", { replace: true });
-        }, 100);
+        navigate("/admin-dashboard", { replace: true });
       } else {
+        setLoginAttempts((prev) => prev + 1);
         setError(
           "Invalid admin credentials. Please check your email and password.",
         );
+
+        // Reset password field for security
+        setPassword("");
+
+        // Show stronger warning after multiple attempts
+        if (loginAttempts >= 3) {
+          setError(
+            "Multiple failed attempts detected. Account may be temporarily locked.",
+          );
+        }
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
       setError("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleMockLogin = (credentials: AdminCredentials) => {
+  const handleMockLogin = (credentials: (typeof DEMO_CREDENTIALS)[0]) => {
     setEmail(credentials.email);
     setPassword(credentials.password);
     setError("");
+    setLoginAttempts(0);
   };
 
   return (
@@ -162,7 +160,7 @@ const AdminLogin = () => {
                   Quick Login (Demo)
                 </p>
               </div>
-              {MOCK_ADMIN_CREDENTIALS.map((cred) => (
+              {DEMO_CREDENTIALS.map((cred) => (
                 <Button
                   key={cred.email}
                   variant="outline"

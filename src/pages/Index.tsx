@@ -27,6 +27,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import DatabaseDebug from "@/components/DatabaseDebug";
 import { supabase, type Product } from "@/lib/supabase";
 import { formatPrice } from "@/lib/utils";
 import { mockProducts, isDatabaseError } from "@/lib/fallback";
@@ -269,6 +270,23 @@ const Index = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Temporary Debug Section */}
+      <section className="py-8 bg-yellow-50 border-t-2 border-yellow-200">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-yellow-800 mb-2">
+              🔧 Debug: Database Connection Status
+            </h2>
+            <p className="text-yellow-700">
+              Temporary debug panel to check database connectivity
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <DatabaseDebug />
           </div>
         </div>
       </section>

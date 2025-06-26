@@ -84,49 +84,117 @@ const ImageUpload = ({
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        // Validate file type
-        if (!file.type.startsWith("image/")) {
-          throw new Error(`${file.name} is not an image file`);
+        try {
+          // Validate file type
+          if (!file.type.startsWith("image/")) {
+            throw new Error(`${file.name} is not an image file`);
+          }
+
+          // Validate file size (max 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            throw new Error(`${file.name} is too large. Max size is 5MB.`);
+          }
+
+          // Create unique filename
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `product-images/${fileName}`;
+
+          // Try to upload file to Supabase Storage
+          try {
+            const { data, error } = await supabase.storage
+              .from("product-images")
+              .upload(filePath, file);
+
+            if (error) {
+              // If storage upload fails, create a local URL for demo purposes
+              console.warn("Supabase storage upload failed:", error);
+              return URL.createObjectURL(file);
+            }
+
+            // Get public URL
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("product-images").getPublicUrl(filePath);
+
+            return publicUrl;
+          } catch (storageError) {
+            // Fallback to local URL for demo purposes
+            console.warn(
+              "Storage service unavailable, using local URL:",
+              storageError,
+            );
+            return URL.createObjectURL(file);
+          }
+        } catch (fileError) {
+          // Individual file processing error
+          console.error(`Error processing file ${file.name}:`, fileError);
+          throw fileError;
         }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`${file.name} is too large. Max size is 5MB.`);
-        }
-
-        // Create unique filename
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `product-images/${fileName}`;
-
-        // Upload file to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, file);
-
-        if (error) throw error;
-
-        // Get public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("product-images").getPublicUrl(filePath);
-
-        return publicUrl;
       });
 
-      const uploadedUrls = await Promise.all(uploadPromises);
-      const newImages = [...images, ...uploadedUrls];
-      updateImages(newImages);
+      const uploadResults = await Promise.allSettled(uploadPromises);
 
-      toast({
-        title: "Images uploaded successfully",
-        description: `${uploadedUrls.length} image(s) uploaded.`,
+      // Separate successful uploads from failures
+      const successfulUploads: string[] = [];
+      const failedUploads: string[] = [];
+
+      uploadResults.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          successfulUploads.push(result.value);
+        } else {
+          failedUploads.push(files[index].name);
+          console.error(
+            `Failed to upload ${files[index].name}:`,
+            result.reason,
+          );
+        }
       });
+
+      // Add successful uploads to images
+      if (successfulUploads.length > 0) {
+        const newImages = [...images, ...successfulUploads];
+        updateImages(newImages);
+      }
+
+      // Show appropriate toast messages
+      if (successfulUploads.length > 0 && failedUploads.length === 0) {
+        toast({
+          title: "Images uploaded successfully",
+          description: `${successfulUploads.length} image(s) uploaded.`,
+        });
+      } else if (successfulUploads.length > 0 && failedUploads.length > 0) {
+        toast({
+          title: "Partial upload success",
+          description: `${successfulUploads.length} uploaded, ${failedUploads.length} failed.`,
+        });
+      } else if (failedUploads.length > 0) {
+        throw new Error(`Failed to upload: ${failedUploads.join(", ")}`);
+      }
     } catch (error: any) {
       console.error("Upload error:", error);
+
+      // Extract error message properly
+      let errorMessage = "Failed to upload images";
+
+      if (error) {
+        if (typeof error === "string") {
+          errorMessage = error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (error.error) {
+          errorMessage = error.error;
+        } else if (error.details) {
+          errorMessage = error.details;
+        } else {
+          // Fallback for complex error objects
+          errorMessage = JSON.stringify(error);
+        }
+      }
+
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload images",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

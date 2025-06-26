@@ -37,6 +37,9 @@ import {
   Star,
   CheckCircle,
   Loader2,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface Order {
@@ -62,6 +65,20 @@ const Profile = () => {
     address: "",
   });
   const [saving, setSaving] = useState(false);
+
+  // Change password states
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   // Dynamic data states
   const [orders, setOrders] = useState<Order[]>([]);
@@ -107,7 +124,22 @@ const Profile = () => {
         .limit(5);
 
       if (ordersError) {
-        console.error("Error fetching orders:", ordersError);
+        console.error("Error fetching orders:", {
+          message: ordersError.message,
+          details: ordersError.details,
+          hint: ordersError.hint,
+          code: ordersError.code,
+          status: ordersError.status,
+          full_error: ordersError,
+        });
+
+        toast({
+          title: "Error loading orders",
+          description: ordersError.message?.includes("Failed to fetch")
+            ? "Database connection unavailable. Please check your internet connection."
+            : `Database error: ${ordersError.message}`,
+          variant: "destructive",
+        });
       } else {
         setOrders(ordersData || []);
 
@@ -164,6 +196,90 @@ const Profile = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      // First verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: passwordForm.currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated",
+      });
+
+      // Reset form
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowChangePassword(false);
+      setShowPasswords({
+        current: false,
+        new: false,
+        confirm: false,
+      });
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast({
+        title: "Error",
+        description:
+          error.message || "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -299,13 +415,23 @@ const Profile = () => {
                         </div>
                       )}
 
-                      <Button
-                        onClick={() => setIsEditing(true)}
-                        className="w-full bg-brand-600 hover:bg-brand-700"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={() => setIsEditing(true)}
+                          className="w-full bg-brand-600 hover:bg-brand-700"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                        <Button
+                          onClick={() => setShowChangePassword(true)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Change Password
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -383,6 +509,182 @@ const Profile = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Change Password Dialog */}
+              <Dialog
+                open={showChangePassword}
+                onOpenChange={setShowChangePassword}
+              >
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Lock className="h-5 w-5" />
+                      Change Password
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div>
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <div className="relative mt-1">
+                        <Input
+                          id="currentPassword"
+                          type={showPasswords.current ? "text" : "password"}
+                          placeholder="Enter your current password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              currentPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              current: !showPasswords.current,
+                            })
+                          }
+                        >
+                          {showPasswords.current ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative mt-1">
+                        <Input
+                          id="newPassword"
+                          type={showPasswords.new ? "text" : "password"}
+                          placeholder="Enter your new password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              new: !showPasswords.new,
+                            })
+                          }
+                        >
+                          {showPasswords.new ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Must be at least 6 characters long
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="confirmPassword">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative mt-1">
+                        <Input
+                          id="confirmPassword"
+                          type={showPasswords.confirm ? "text" : "password"}
+                          placeholder="Confirm your new password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              confirm: !showPasswords.confirm,
+                            })
+                          }
+                        >
+                          {showPasswords.confirm ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowChangePassword(false);
+                          setPasswordForm({
+                            currentPassword: "",
+                            newPassword: "",
+                            confirmPassword: "",
+                          });
+                          setShowPasswords({
+                            current: false,
+                            new: false,
+                            confirm: false,
+                          });
+                        }}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={passwordLoading}
+                        className="flex-1 bg-brand-600 hover:bg-brand-700"
+                      >
+                        {passwordLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="mr-2 h-4 w-4" />
+                            Update Password
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Account Overview */}
@@ -434,13 +736,13 @@ const Profile = () => {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Recent Orders</CardTitle>
+                    <CardTitle>Order History</CardTitle>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate("/track-order")}
                     >
-                      View All Orders
+                      Track Pending Orders
                     </Button>
                   </div>
                 </CardHeader>

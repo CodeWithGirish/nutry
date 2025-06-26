@@ -64,3 +64,37 @@ export function getMaxPrice(
   if (!prices || prices.length === 0) return 0;
   return Math.max(...prices.map((p) => p.price));
 }
+
+/**
+ * Formats order ID consistently across the application
+ * Uses the order_number field if available, otherwise falls back to a formatted UUID
+ * @param orderData - Order object with id and optional order_number
+ * @returns Formatted order ID string (e.g., "NV202412010001")
+ */
+export function formatOrderId(orderData: {
+  id: string;
+  order_number?: string;
+}): string {
+  // If we have an order_number, use it (this is the primary format)
+  if (orderData.order_number) {
+    return orderData.order_number;
+  }
+
+  // Fallback for legacy orders or when order_number is not available
+  // Create a NV-prefixed format using the UUID
+  const uuid = orderData.id;
+  if (uuid.startsWith("demo-")) {
+    // For demo data
+    return `NV2024${uuid.split("-")[2]?.padStart(8, "0") || "00000001"}`;
+  }
+
+  // For real UUIDs, create a NV format using part of the UUID
+  const uuidPart = uuid.replace(/-/g, "").slice(-8).toUpperCase();
+  const today = new Date();
+  const dateStr =
+    today.getFullYear().toString() +
+    (today.getMonth() + 1).toString().padStart(2, "0") +
+    today.getDate().toString().padStart(2, "0");
+
+  return `NV${dateStr}${uuidPart.slice(-4)}`;
+}

@@ -30,7 +30,7 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [cartItems, setCartItems] = useState<
     (CartItem & { product: Product })[]
   >([]);
@@ -128,19 +128,34 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       setCartItems(validCartItems);
     } catch (error: any) {
-      console.error("Error fetching cart items:", error.message || error);
+      console.error("Error fetching cart items:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+        full_error: error,
+      });
 
-      if (isDatabaseError(error)) {
+      if (
+        isDatabaseError(error) ||
+        error.status === 404 ||
+        error.message?.includes("Failed to fetch")
+      ) {
         console.log("Using local cart due to database connection error");
         loadLocalCart();
         toast({
-          title: "Offline Mode",
-          description: "Using local cart data - some features may be limited",
+          title: "Database Unavailable",
+          description:
+            "Using local cart data. Some features may be limited until connection is restored.",
+          variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: `Failed to load cart items: ${error.message || "Unknown error"}`,
+          title: "Cart Load Error",
+          description: error.code
+            ? `Database error (${error.code}): ${error.message}`
+            : `Failed to load cart items: ${error.message || "Unknown error"}`,
           variant: "destructive",
         });
       }
@@ -159,6 +174,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       toast({
         title: "Please sign in",
         description: "You need to be signed in to add items to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description:
+          "Admin accounts cannot add items to cart or make purchases",
         variant: "destructive",
       });
       return;
@@ -300,6 +325,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const removeFromCart = async (cartItemId: string) => {
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description: "Admin accounts cannot modify cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("cart")
@@ -343,6 +377,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description: "Admin accounts cannot modify cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (quantity <= 0) {
       await removeFromCart(cartItemId);
       return;
@@ -440,6 +483,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = async () => {
     if (!user) return;
+
+    if (isAdmin) {
+      toast({
+        title: "Admin Account Restriction",
+        description: "Admin accounts cannot modify cart",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase

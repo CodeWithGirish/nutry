@@ -90,6 +90,7 @@ const TrackOrder = () => {
         `,
         )
         .eq("user_id", user.id)
+        .neq("status", "delivered") // Only show undelivered orders
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -241,7 +242,7 @@ const TrackOrder = () => {
               <Package2 className="h-5 w-5 text-brand-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Track Your Order
+              Track Your Orders
             </h1>
           </div>
         </div>
@@ -490,8 +491,11 @@ const TrackOrder = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="h-5 w-5" />
-                    Your Recent Orders
+                    Your Pending Orders
                   </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Orders that are yet to be delivered
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -525,6 +529,47 @@ const TrackOrder = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Empty state for logged-in users with no pending orders */}
+            {user && !showGuestSearch && userOrders.length === 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingBag className="h-5 w-5" />
+                    Your Pending Orders
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Orders that are yet to be delivered
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      All caught up!
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      You don't have any pending orders. All your orders have
+                      been delivered.
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <Button
+                        onClick={() => navigate("/products")}
+                        className="bg-brand-600 hover:bg-brand-700"
+                      >
+                        Continue Shopping
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate("/profile")}
+                      >
+                        View Order History
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

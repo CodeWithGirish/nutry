@@ -47,7 +47,12 @@ const Navigation = () => {
       ];
     }
 
-    // Logged-in users see full navigation
+    // Admin users only see admin navigation
+    if (isAdmin) {
+      return [{ name: "Admin Dashboard", href: "/admin-dashboard" }];
+    }
+
+    // Regular logged-in users see full navigation
     return [
       { name: "Home", href: "/" },
       { name: "Products", href: "/products" },
@@ -117,42 +122,30 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-brand-600 flex items-center gap-1",
-                  isActive("/admin")
-                    ? "text-brand-600 border-b-2 border-brand-600 pb-1"
-                    : "text-gray-700",
-                )}
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
-            )}
           </nav>
 
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
-            {/* Search */}
-            <form
-              onSubmit={handleSearch}
-              className="hidden md:flex items-center relative"
-            >
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-64"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </form>
+            {/* Search - Hidden for admin users */}
+            {!isAdmin && (
+              <form
+                onSubmit={handleSearch}
+                className="hidden md:flex items-center relative"
+              >
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-64"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </form>
+            )}
 
             {/* User Actions */}
             <div className="flex items-center space-x-2">
-              {user && (
+              {user && !isAdmin && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -168,19 +161,21 @@ const Navigation = () => {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="relative"
-                onClick={() => navigate("/cart")}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
+              {!isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative"
+                  onClick={() => navigate("/cart")}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-brand-500 text-white text-xs">
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              )}
 
               {user ? (
                 <DropdownMenu>
@@ -197,21 +192,32 @@ const Navigation = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => navigate("/profile")}>
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/track-order")}>
-                      <Package className="mr-2 h-4 w-4" />
-                      My Orders
-                    </DropdownMenuItem>
-                    {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        Admin Panel
-                      </DropdownMenuItem>
+                    {!isAdmin && (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate("/profile")}>
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/track-order")}
+                        >
+                          <Package className="mr-2 h-4 w-4" />
+                          My Orders
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
                     )}
-                    <DropdownMenuSeparator />
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/admin-dashboard")}
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Admin Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
@@ -250,17 +256,19 @@ const Navigation = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="flex flex-col space-y-4">
-              {/* Mobile search */}
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </form>
+              {/* Mobile search - Hidden for admin users */}
+              {!isAdmin && (
+                <form onSubmit={handleSearch} className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </form>
+              )}
 
               {/* Mobile navigation */}
               <nav className="flex flex-col space-y-2">
@@ -279,21 +287,6 @@ const Navigation = () => {
                     {item.name}
                   </Link>
                 ))}
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className={cn(
-                      "text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center gap-2",
-                      isActive("/admin")
-                        ? "bg-brand-100 text-brand-700"
-                        : "text-gray-700 hover:bg-gray-100",
-                    )}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Shield className="h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                )}
               </nav>
 
               {/* Mobile auth actions */}

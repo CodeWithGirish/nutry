@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
 import ImageUpload from "@/components/ImageUpload";
+import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
+import DatabaseDebug from "@/components/DatabaseDebug";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,25 +80,21 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { supabase, type Product, type Order } from "@/lib/supabase";
 import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "@/lib/email";
-import { parsePrices, formatPrice, formatDate } from "@/lib/utils";
+import {
+  parsePrices,
+  formatPrice,
+  formatDate,
+  formatOrderId,
+} from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-
-interface AdminSession {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  loginTime: string;
-}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-
-  // Admin session management
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  const { adminSession, logoutAdmin } = useAdminAuth();
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // Data states
@@ -114,10 +112,17 @@ const AdminDashboard = () => {
   const [timeRange, setTimeRange] = useState("30d");
   const [productLoading, setProductLoading] = useState(false);
 
+  // Order filtering states
+  const [orderDateFilter, setOrderDateFilter] = useState("all");
+  const [orderStartDate, setOrderStartDate] = useState("");
+  const [orderEndDate, setOrderEndDate] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
+
   // Stats
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
+    periodRevenue: 0,
     totalProducts: 0,
     totalCustomers: 0,
     pendingOrders: 0,
@@ -143,38 +148,17 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    // Check admin authentication first
-    const session = localStorage.getItem("admin_session");
-
-    if (!session) {
-      if (!user || !isAdmin) {
-        navigate("/admin-login");
-        return;
-      }
-      // Create admin session from auth context
-      const adminData = {
-        id: user.id,
-        email: user.email || "",
-        name: user.user_metadata?.full_name || "Admin",
-        role: "admin",
-        loginTime: new Date().toISOString(),
-      };
-      localStorage.setItem("admin_session", JSON.stringify(adminData));
-      setAdminSession(adminData);
-    } else {
-      try {
-        const adminData = JSON.parse(session);
-        setAdminSession(adminData);
-      } catch (error) {
-        console.error("Invalid admin session:", error);
-        localStorage.removeItem("admin_session");
-        navigate("/admin-login");
-        return;
-      }
-    }
-
+    // Admin authentication is handled by AdminProtectedRoute
+    // Just fetch data when component mounts
     fetchData();
-  }, [user, isAdmin, navigate]);
+  }, []);
+
+  // Refresh stats when time range changes
+  useEffect(() => {
+    if (adminSession) {
+      fetchStats();
+    }
+  }, [timeRange]);
 
   // Fallback demo data
   const useFallbackData = () => {
@@ -453,12 +437,28 @@ const AdminDashboard = () => {
       setOrders(enrichedOrders);
       console.log("Orders fetched successfully:", enrichedOrders.length);
     } catch (error: any) {
-      console.error("Error fetching orders:", error.message || error);
+      console.error("Error fetching orders:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+        full_error: error,
+      });
       setOrders([]);
-      // Show user-friendly error
+
+      // Determine error type and show appropriate message
+      let errorMessage = "Unable to load orders";
+      if (error.message?.includes("Failed to fetch") || error.status === 404) {
+        errorMessage =
+          "Database connection unavailable. Please check your internet connection.";
+      } else if (error.code) {
+        errorMessage = `Database error (${error.code}): ${error.message}`;
+      }
+
       toast({
         title: "Orders Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -525,8 +525,94 @@ const AdminDashboard = () => {
     }
   };
 
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    const startDate = new Date();
+
+    switch (range) {
+      case "7d":
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case "30d":
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case "90d":
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case "1y":
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    return {
+      start: startDate.toISOString(),
+      end: now.toISOString(),
+    };
+  };
+
+  const getFilteredOrders = () => {
+    let filtered = [...orders];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (order) =>
+          order.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Filter by status
+    if (orderStatusFilter !== "all") {
+      filtered = filtered.filter((order) => order.status === orderStatusFilter);
+    }
+
+    // Filter by date
+    if (orderDateFilter === "custom" && orderStartDate && orderEndDate) {
+      const startDate = new Date(orderStartDate).toISOString();
+      const endDate = new Date(orderEndDate + "T23:59:59").toISOString();
+      filtered = filtered.filter((order) => {
+        const orderDate = order.created_at;
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+    } else if (orderDateFilter !== "all") {
+      const now = new Date();
+      let filterDate = new Date();
+
+      switch (orderDateFilter) {
+        case "today":
+          filterDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          break;
+        case "week":
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case "quarter":
+          filterDate.setMonth(now.getMonth() - 3);
+          break;
+      }
+
+      filtered = filtered.filter(
+        (order) => new Date(order.created_at) >= filterDate,
+      );
+    }
+
+    return filtered;
+  };
+
   const fetchStats = async () => {
     try {
+      const dateRange = getDateRange(timeRange);
+
       // Fetch total orders with error handling
       const { count: ordersCount, error: ordersError } = await supabase
         .from("orders")
@@ -536,8 +622,8 @@ const AdminDashboard = () => {
         console.warn("Error fetching orders count:", ordersError);
       }
 
-      // Fetch total revenue with error handling
-      const { data: revenueData, error: revenueError } = await supabase
+      // Fetch total revenue (all time) with error handling
+      const { data: allTimeRevenueData, error: revenueError } = await supabase
         .from("orders")
         .select("total_amount")
         .eq("payment_status", "paid");
@@ -547,7 +633,26 @@ const AdminDashboard = () => {
       }
 
       const totalRevenue =
-        revenueData?.reduce(
+        allTimeRevenueData?.reduce(
+          (sum, order) => sum + (order.total_amount || 0),
+          0,
+        ) || 0;
+
+      // Fetch revenue for selected time range
+      const { data: periodRevenueData, error: periodRevenueError } =
+        await supabase
+          .from("orders")
+          .select("total_amount, created_at")
+          .eq("payment_status", "paid")
+          .gte("created_at", dateRange.start)
+          .lte("created_at", dateRange.end);
+
+      if (periodRevenueError) {
+        console.warn("Error fetching period revenue data:", periodRevenueError);
+      }
+
+      const periodRevenue =
+        periodRevenueData?.reduce(
           (sum, order) => sum + (order.total_amount || 0),
           0,
         ) || 0;
@@ -570,7 +675,7 @@ const AdminDashboard = () => {
           0,
         ) || 0;
 
-      // Fetch monthly revenue
+      // Fetch monthly revenue (current month)
       const startOfMonth = new Date(
         new Date().getFullYear(),
         new Date().getMonth(),
@@ -634,6 +739,7 @@ const AdminDashboard = () => {
       setStats({
         totalOrders: ordersCount || 0,
         totalRevenue,
+        periodRevenue,
         totalProducts: productsCount || 0,
         totalCustomers: customersCount || 0,
         pendingOrders: pendingOrdersCount || 0,
@@ -645,9 +751,18 @@ const AdminDashboard = () => {
     } catch (error: any) {
       console.error("Error fetching stats:", error.message || error);
       // Use fallback stats with notification
+      const fallbackPeriodRevenue =
+        timeRange === "7d"
+          ? 15000
+          : timeRange === "30d"
+            ? 45000
+            : timeRange === "90d"
+              ? 95000
+              : 120000;
       setStats({
         totalOrders: 89,
         totalRevenue: 125000,
+        periodRevenue: fallbackPeriodRevenue,
         totalProducts: 25,
         totalCustomers: 156,
         pendingOrders: 3,
@@ -665,11 +780,11 @@ const AdminDashboard = () => {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem("admin_session");
+    logoutAdmin();
     navigate("/admin-login");
     toast({
       title: "Signed out",
-      description: "You have been signed out successfully",
+      description: "You have been signed out securely",
     });
   };
 
@@ -830,9 +945,15 @@ const AdminDashboard = () => {
         }
       }
 
+      // Find the order to get the full object for formatting
+      const updatedOrder = orders.find((o) => o.id === orderId);
+      const orderDisplayId = updatedOrder
+        ? formatOrderId(updatedOrder)
+        : orderId;
+
       toast({
         title: "Order status updated!",
-        description: `Order ${formatOrderId(orderId)} has been marked as ${newStatus}.`,
+        description: `Order ${orderDisplayId} has been marked as ${newStatus}.`,
       });
     } catch (error: any) {
       toast({
@@ -920,13 +1041,6 @@ const AdminDashboard = () => {
       updatedPrices[index] = { ...updatedPrices[index], [field]: value };
       setEditingProduct({ ...editingProduct, prices: updatedPrices });
     }
-  };
-
-  // Helper function for consistent order ID formatting
-  const formatOrderId = (orderId: string) => {
-    // Extract first 8 characters and format as #N followed by the ID
-    const shortId = orderId.substring(0, 8).toUpperCase();
-    return `#N${shortId}`;
   };
 
   // Helper function to get status color
@@ -1097,13 +1211,24 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Revenue
+                    Revenue (
+                    {timeRange === "7d"
+                      ? "Last 7 days"
+                      : timeRange === "30d"
+                        ? "Last 30 days"
+                        : timeRange === "90d"
+                          ? "Last 90 days"
+                          : "Last year"}
+                    )
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatPrice(stats.totalRevenue)}
+                    {formatPrice(stats.periodRevenue)}
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     Today: {formatPrice(stats.todayRevenue)}
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    All-time: {formatPrice(stats.totalRevenue)}
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-600" />
@@ -1219,7 +1344,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -1243,6 +1368,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
               Settings
+            </TabsTrigger>
+            <TabsTrigger value="debug">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Debug
             </TabsTrigger>
           </TabsList>
 
@@ -1720,6 +1849,111 @@ const AdminDashboard = () => {
                 </Button>
               </CardHeader>
               <CardContent>
+                {/* Order Filters */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="order-search"
+                      className="text-sm font-medium"
+                    >
+                      Search:
+                    </Label>
+                    <Input
+                      id="order-search"
+                      placeholder="Search orders, customers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-48"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="order-status"
+                      className="text-sm font-medium"
+                    >
+                      Status:
+                    </Label>
+                    <Select
+                      value={orderStatusFilter}
+                      onValueChange={setOrderStatusFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="order-date" className="text-sm font-medium">
+                      Date:
+                    </Label>
+                    <Select
+                      value={orderDateFilter}
+                      onValueChange={setOrderDateFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">Last Week</SelectItem>
+                        <SelectItem value="month">Last Month</SelectItem>
+                        <SelectItem value="quarter">Last Quarter</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {orderDateFilter === "custom" && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="start-date"
+                          className="text-sm font-medium"
+                        >
+                          From:
+                        </Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={orderStartDate}
+                          onChange={(e) => setOrderStartDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="end-date"
+                          className="text-sm font-medium"
+                        >
+                          To:
+                        </Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={orderEndDate}
+                          onChange={(e) => setOrderEndDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    Showing {getFilteredOrders().length} of {orders.length}{" "}
+                    orders
+                  </div>
+                </div>
                 <div className="border rounded-lg">
                   <Table>
                     <TableHeader>
@@ -1735,14 +1969,14 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders.map((order) => {
+                      {getFilteredOrders().map((order) => {
                         const validNextStatuses = getValidNextStatuses(
                           order.status,
                         );
                         return (
                           <TableRow key={order.id}>
                             <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order.id)}
+                              {formatOrderId(order)}
                             </TableCell>
                             <TableCell>
                               <div>
@@ -1814,13 +2048,7 @@ const AdminDashboard = () => {
                                 >
                                   <Eye className="h-3 w-3" />
                                 </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  title="Download Invoice"
-                                >
-                                  <Download className="h-3 w-3" />
-                                </Button>
+                                <ReceiptGenerator order={order} />
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -2104,6 +2332,13 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Debug Tab */}
+          <TabsContent value="debug" className="space-y-6">
+            <div className="flex justify-center">
+              <DatabaseDebug />
+            </div>
+          </TabsContent>
         </Tabs>
 
         {/* Edit Product Dialog */}
@@ -2279,7 +2514,7 @@ const AdminDashboard = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
                   <ShoppingCart className="h-6 w-6" />
-                  Order Details - {formatOrderId(viewingOrder.id)}
+                  Order Details - {formatOrderId(viewingOrder)}
                 </DialogTitle>
               </DialogHeader>
 

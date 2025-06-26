@@ -3,7 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Star, Eye, Gift, Scale } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  Star,
+  Eye,
+  Gift,
+  Scale,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { cn, formatPrice, parsePrices } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +25,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
@@ -24,6 +33,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
     parsePrices(product.prices)[0]?.weight || "250g",
   );
   const [isHovered, setIsHovered] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Get all product images (including legacy single image)
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : [product.image_url];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + productImages.length) % productImages.length,
+    );
+  };
 
   const isWishlisted = isInWishlist(product.id);
 
@@ -61,14 +87,63 @@ const ProductCard = ({ product }: ProductCardProps) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative">
-        {/* Product Image */}
+        {/* Product Image Carousel */}
         <div
-          className="aspect-square overflow-hidden bg-gradient-to-br from-warm-50 to-brand-50 cursor-pointer"
+          className="aspect-square overflow-hidden bg-gradient-to-br from-warm-50 to-brand-50 cursor-pointer relative group"
           onClick={handleQuickView}
         >
-          <div className="w-full h-full flex items-center justify-center text-6xl">
-            {product.image_url}
+          <div className="w-full h-full flex items-center justify-center">
+            {productImages[currentImageIndex]?.startsWith("http") ? (
+              <img
+                src={productImages[currentImageIndex]}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-6xl">{productImages[currentImageIndex]}</div>
+            )}
           </div>
+
+          {/* Image Navigation - only show if multiple images */}
+          {productImages.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white"
+              >
+                <ChevronLeft className="w-3 h-3 text-gray-700" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-white"
+              >
+                <ChevronRight className="w-3 h-3 text-gray-700" />
+              </button>
+
+              {/* Image Indicators */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {productImages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex(index);
+                    }}
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full transition-colors",
+                      index === currentImageIndex ? "bg-white" : "bg-white/50",
+                    )}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Badges */}
@@ -143,11 +218,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
         >
           <Button
             className="w-full bg-brand-600 hover:bg-brand-700 text-white"
-            disabled={!product.in_stock}
+            disabled={!product.in_stock || isAdmin}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {product.in_stock ? "Quick Add" : "Notify Me"}
+            {isAdmin
+              ? "Admin View"
+              : product.in_stock
+                ? "Quick Add"
+                : "Notify Me"}
           </Button>
         </div>
       </div>
@@ -238,7 +317,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Button
             size="sm"
             className="bg-brand-600 hover:bg-brand-700 text-white"
-            disabled={!product.in_stock}
+            disabled={!product.in_stock || isAdmin}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4" />

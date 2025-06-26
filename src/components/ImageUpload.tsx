@@ -108,7 +108,19 @@ const ImageUpload = ({
 
             if (error) {
               // If storage upload fails, create a local URL for demo purposes
-              console.warn("Supabase storage upload failed:", error);
+              console.warn("Supabase storage upload failed:", error.message);
+              console.info(
+                "Using local blob URL as fallback. Note: This image will only be visible in the current browser session.",
+              );
+
+              // Show a warning toast about temporary storage
+              toast({
+                title: "Storage Warning",
+                description:
+                  "Image uploaded locally. Set up Supabase storage for permanent images. See IMAGE_STORAGE_SETUP.md",
+                variant: "destructive",
+              });
+
               return URL.createObjectURL(file);
             }
 
@@ -117,6 +129,7 @@ const ImageUpload = ({
               data: { publicUrl },
             } = supabase.storage.from("product-images").getPublicUrl(filePath);
 
+            console.log("Image uploaded successfully to storage:", publicUrl);
             return publicUrl;
           } catch (storageError) {
             // Fallback to local URL for demo purposes
@@ -124,6 +137,18 @@ const ImageUpload = ({
               "Storage service unavailable, using local URL:",
               storageError,
             );
+            console.info(
+              "Using local blob URL as fallback. Note: This image will only be visible in the current browser session.",
+            );
+
+            // Show a warning toast about temporary storage
+            toast({
+              title: "Storage Unavailable",
+              description:
+                "Image stored temporarily. Set up Supabase storage for permanent images. See IMAGE_STORAGE_SETUP.md",
+              variant: "destructive",
+            });
+
             return URL.createObjectURL(file);
           }
         } catch (fileError) {

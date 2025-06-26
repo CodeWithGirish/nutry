@@ -2410,6 +2410,22 @@ const AdminDashboard = () => {
                   />
                 </div>
 
+                {/* Image Upload */}
+                <MultiImageUpload
+                  onImagesChange={(images) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      images,
+                      image_url: images[0] || editingProduct.image_url,
+                    })
+                  }
+                  existingImages={
+                    editingProduct.images || [editingProduct.image_url]
+                  }
+                  maxImages={10}
+                  showPrimaryBadge={true}
+                />
+
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="editStockQuantity">Stock Quantity</Label>

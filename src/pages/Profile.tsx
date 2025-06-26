@@ -184,6 +184,90 @@ const Profile = () => {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      // First verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: passwordForm.currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated",
+      });
+
+      // Reset form
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowChangePassword(false);
+      setShowPasswords({
+        current: false,
+        new: false,
+        confirm: false,
+      });
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast({
+        title: "Error",
+        description:
+          error.message || "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   const handleReorder = async (order: Order) => {
     if (!order.order_items || order.order_items.length === 0) {
       toast({

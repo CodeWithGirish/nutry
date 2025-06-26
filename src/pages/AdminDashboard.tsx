@@ -1717,19 +1717,58 @@ const AdminDashboard = () => {
                         <TableRow key={product.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <span className="text-2xl">
-                                {product.image_url}
-                              </span>
+                              <div className="w-12 h-12 bg-gradient-to-br from-warm-50 to-brand-50 rounded-lg flex items-center justify-center overflow-hidden">
+                                {(() => {
+                                  // Use first image from images array or fallback to image_url
+                                  const primaryImage =
+                                    product.images && product.images.length > 0
+                                      ? product.images[0]
+                                      : product.image_url;
+
+                                  return primaryImage?.startsWith("http") ||
+                                    primaryImage?.startsWith("blob:") ? (
+                                    <img
+                                      src={primaryImage}
+                                      alt={product.name}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        const target =
+                                          e.target as HTMLImageElement;
+                                        target.style.display = "none";
+                                        const parent = target.parentElement;
+                                        if (parent) {
+                                          parent.innerHTML = `<span class="text-lg">${primaryImage}</span>`;
+                                        }
+                                      }}
+                                    />
+                                  ) : (
+                                    <span className="text-lg">
+                                      {primaryImage}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                               <div>
                                 <p className="font-medium">{product.name}</p>
                                 <p className="text-sm text-gray-500">
                                   {product.description.substring(0, 50)}...
                                 </p>
-                                {product.is_featured && (
-                                  <Badge className="mt-1 bg-yellow-100 text-yellow-800">
-                                    Featured
-                                  </Badge>
-                                )}
+                                <div className="flex items-center gap-2 mt-1">
+                                  {product.is_featured && (
+                                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                                      Featured
+                                    </Badge>
+                                  )}
+                                  {product.images &&
+                                    product.images.length > 1 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {product.images.length} images
+                                      </Badge>
+                                    )}
+                                </div>
                               </div>
                             </div>
                           </TableCell>

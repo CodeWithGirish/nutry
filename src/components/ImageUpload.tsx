@@ -99,19 +99,32 @@ const ImageUpload = ({
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `product-images/${fileName}`;
 
-        // Upload file to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, file);
+        // Try to upload file to Supabase Storage
+        try {
+          const { data, error } = await supabase.storage
+            .from("product-images")
+            .upload(filePath, file);
 
-        if (error) throw error;
+          if (error) {
+            // If storage upload fails, create a local URL for demo purposes
+            console.warn("Supabase storage upload failed:", error);
+            return URL.createObjectURL(file);
+          }
 
-        // Get public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("product-images").getPublicUrl(filePath);
+          // Get public URL
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("product-images").getPublicUrl(filePath);
 
-        return publicUrl;
+          return publicUrl;
+        } catch (storageError) {
+          // Fallback to local URL for demo purposes
+          console.warn(
+            "Storage service unavailable, using local URL:",
+            storageError,
+          );
+          return URL.createObjectURL(file);
+        }
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);

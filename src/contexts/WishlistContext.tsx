@@ -99,20 +99,34 @@ export const WishlistProvider = ({
 
       setWishlistItems(enrichedItems);
     } catch (error: any) {
-      console.error("Error loading wishlist:", error.message || error);
+      console.error("Error loading wishlist:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status: error.status,
+        full_error: error,
+      });
 
-      if (isDatabaseError(error)) {
+      if (
+        isDatabaseError(error) ||
+        error.status === 404 ||
+        error.message?.includes("Failed to fetch")
+      ) {
         console.log("Using local wishlist due to database connection error");
         loadLocalWishlist();
         toast({
-          title: "Offline Mode",
+          title: "Database Unavailable",
           description:
-            "Using local wishlist data - some features may be limited",
+            "Using local wishlist data. Some features may be limited until connection is restored.",
+          variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to load wishlist",
+          title: "Wishlist Load Error",
+          description: error.code
+            ? `Database error (${error.code}): ${error.message}`
+            : "Failed to load wishlist data",
           variant: "destructive",
         });
       }

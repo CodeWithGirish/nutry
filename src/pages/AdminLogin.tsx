@@ -17,29 +17,22 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-interface AdminCredentials {
-  email: string;
-  password: string;
-  name: string;
-  role: "admin" | "super_admin";
-}
-
-const MOCK_ADMIN_CREDENTIALS: AdminCredentials[] = [
+const DEMO_CREDENTIALS = [
   {
     email: "admin@nutrivault.com",
-    password: "admin123",
+    password: "Admin123!@#",
     name: "Admin User",
     role: "admin",
   },
   {
     email: "superadmin@nutrivault.com",
-    password: "super123",
+    password: "SuperAdmin123!@#",
     name: "Super Admin",
     role: "super_admin",
   },
   {
     email: "demo@nutrivault.com",
-    password: "demo123",
+    password: "Demo123!@#",
     name: "Demo Admin",
     role: "admin",
   },
@@ -49,10 +42,18 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   const navigate = useNavigate();
+  const { loginAdmin, loading, isAuthenticated } = useAdminAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/admin-dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();

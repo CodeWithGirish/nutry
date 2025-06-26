@@ -589,16 +589,40 @@ const OrderConfirmation = () => {
                         key={item.id}
                         className="flex items-center gap-4 p-4 border rounded-lg"
                       >
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                          {item.product?.image_url ? (
-                            <img
-                              src={item.product.image_url}
-                              alt={item.product_name}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <Package className="h-8 w-8 text-gray-400" />
-                          )}
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                          {(() => {
+                            // Use first image from images array or fallback to image_url
+                            const primaryImage =
+                              item.product?.images &&
+                              item.product.images.length > 0
+                                ? item.product.images[0]
+                                : item.product?.image_url;
+
+                            if (!primaryImage) {
+                              return (
+                                <Package className="h-8 w-8 text-gray-400" />
+                              );
+                            }
+
+                            return primaryImage?.startsWith("http") ||
+                              primaryImage?.startsWith("blob:") ? (
+                              <img
+                                src={primaryImage}
+                                alt={item.product_name}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = "none";
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = `<span class="text-2xl">${primaryImage}</span>`;
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <span className="text-2xl">{primaryImage}</span>
+                            );
+                          })()}
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900">

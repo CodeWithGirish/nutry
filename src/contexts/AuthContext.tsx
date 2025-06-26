@@ -351,11 +351,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(null);
       setSession(null);
 
-      // Sign out in background
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("SignOut error:", error);
-        // Don't throw - user state is already cleared
+      // Only sign out if there's an active session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error("SignOut error:", error);
+          // Don't throw - user state is already cleared
+        }
+      } else {
+        console.log("No active session found, skipping Supabase signOut");
       }
     } catch (error: any) {
       console.error("SignOut error:", error);

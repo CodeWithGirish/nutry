@@ -316,7 +316,7 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `receipt-${formatOrderId(order.id)}.html`;
+    link.download = `receipt-${formatOrderId(order)}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

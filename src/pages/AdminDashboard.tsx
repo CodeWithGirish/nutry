@@ -1369,6 +1369,10 @@ const AdminDashboard = () => {
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </TabsTrigger>
+            <TabsTrigger value="debug">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Debug
+            </TabsTrigger>
           </TabsList>
 
           {/* Analytics Tab */}

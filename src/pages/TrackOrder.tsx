@@ -242,7 +242,7 @@ const TrackOrder = () => {
               <Package2 className="h-5 w-5 text-brand-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Track Your Order
+              Track Your Orders
             </h1>
           </div>
         </div>

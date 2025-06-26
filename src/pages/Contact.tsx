@@ -164,34 +164,39 @@ const Contact = () => {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-brand-50 to-warm-50 py-16">
+      <section className="bg-gradient-to-br from-brand-50 to-warm-50 py-12 sm:py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
             Get in Touch
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
             Have questions about our products? Need help with your order? We're
             here to help!
           </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid lg:grid-cols-3 gap-12">
+      <div className="container mx-auto px-4 py-12 sm:py-16">
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Contact Form */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <MessageSquare className="h-5 w-5 text-brand-600" />
                   Send us a Message
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4 sm:space-y-6"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name" className="text-sm font-medium">
+                        Full Name
+                      </Label>
                       <Input
                         id="name"
                         name="name"
@@ -203,7 +208,9 @@ const Contact = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email" className="text-sm font-medium">
+                        Email Address
+                      </Label>
                       <Input
                         id="email"
                         name="email"
@@ -217,9 +224,11 @@ const Contact = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-sm font-medium">
+                        Phone Number
+                      </Label>
                       <Input
                         id="phone"
                         name="phone"
@@ -231,7 +240,9 @@ const Contact = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="category" className="text-sm font-medium">
+                        Category
+                      </Label>
                       <Select
                         value={formData.category}
                         onValueChange={(value) =>
@@ -309,23 +320,28 @@ const Contact = () => {
           </div>
 
           {/* Contact Information */}
-          <div className="space-y-6">
+          <div className="space-y-6 order-1 lg:order-2">
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">
+                  Contact Information
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 {contactInfo.map((info, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-10 h-10 bg-brand-100 text-brand-600 rounded-lg flex items-center justify-center">
                       <info.icon className="h-5 w-5" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">
                         {info.title}
                       </h3>
                       {info.details.map((detail, idx) => (
-                        <p key={idx} className="text-gray-600 text-sm">
+                        <p
+                          key={idx}
+                          className="text-gray-600 text-sm break-words"
+                        >
                           {detail}
                         </p>
                       ))}
@@ -362,36 +378,40 @@ const Contact = () => {
       </div>
 
       {/* Quick Actions */}
-      <section className="py-16 bg-brand-600 text-white">
+      <section className="py-12 sm:py-16 bg-brand-600 text-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl mb-4">📞</div>
-              <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-brand-100 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">📞</div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">Call Us</h3>
+              <p className="text-brand-100 mb-3 sm:mb-4 text-sm sm:text-base">
                 Speak directly with our support team
               </p>
-              <button className="bg-white text-brand-700 hover:bg-gray-100 px-6 py-2 rounded-lg font-medium transition-colors">
+              <button className="bg-white text-brand-700 hover:bg-gray-100 px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base w-full sm:w-auto">
                 +1 (555) 123-4567
               </button>
             </div>
-            <div>
-              <div className="text-4xl mb-4">💬</div>
-              <h3 className="text-xl font-semibold mb-2">Live Chat</h3>
-              <p className="text-brand-100 mb-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">💬</div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                Live Chat
+              </h3>
+              <p className="text-brand-100 mb-3 sm:mb-4 text-sm sm:text-base">
                 Get instant help from our chat support
               </p>
-              <button className="bg-white text-brand-700 hover:bg-gray-100 px-6 py-2 rounded-lg font-medium transition-colors">
+              <button className="bg-white text-brand-700 hover:bg-gray-100 px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base w-full sm:w-auto">
                 Start Chat
               </button>
             </div>
-            <div>
-              <div className="text-4xl mb-4">📧</div>
-              <h3 className="text-xl font-semibold mb-2">Email Support</h3>
-              <p className="text-brand-100 mb-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">📧</div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                Email Support
+              </h3>
+              <p className="text-brand-100 mb-3 sm:mb-4 text-sm sm:text-base">
                 Send us an email and we'll respond quickly
               </p>
-              <button className="bg-white text-brand-700 hover:bg-gray-100 px-6 py-2 rounded-lg font-medium transition-colors">
+              <button className="bg-white text-brand-700 hover:bg-gray-100 px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base w-full sm:w-auto break-all sm:break-normal">
                 info@nutrivault.com
               </button>
             </div>

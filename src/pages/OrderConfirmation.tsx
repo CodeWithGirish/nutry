@@ -524,7 +524,7 @@ const OrderConfirmation = () => {
               start processing your order shortly.
             </p>
             <Badge className="bg-brand-100 text-brand-700 text-lg px-4 py-2">
-              Order #{order.id.slice(-8).toUpperCase()}
+              {formatOrderId(order)}
             </Badge>
           </div>
 

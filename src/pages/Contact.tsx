@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +24,18 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Contact = () => {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAdmin) {
+      navigate("/admin-dashboard");
+    }
+  }, [isAdmin, navigate]);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",

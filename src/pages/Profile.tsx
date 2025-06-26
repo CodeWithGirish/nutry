@@ -66,6 +66,20 @@ const Profile = () => {
   });
   const [saving, setSaving] = useState(false);
 
+  // Change password states
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
   // Dynamic data states
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState({

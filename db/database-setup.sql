@@ -1,5 +1,8 @@
 -- Database Schema for NutriVault eCommerce
 -- Run this SQL in your Supabase SQL Editor
+--
+-- IMPORTANT: After running this script, also run storage-setup.sql
+-- to set up image storage for product images.
 
 -- Enable Row Level Security
 ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
@@ -112,7 +115,7 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Admins can view all profiles" ON profiles
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -124,7 +127,7 @@ CREATE POLICY "Anyone can view products" ON products
 CREATE POLICY "Admins can insert products" ON products
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -132,7 +135,7 @@ CREATE POLICY "Admins can insert products" ON products
 CREATE POLICY "Admins can update products" ON products
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -140,7 +143,7 @@ CREATE POLICY "Admins can update products" ON products
 CREATE POLICY "Admins can delete products" ON products
   FOR DELETE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -162,7 +165,7 @@ CREATE POLICY "Users can insert own orders" ON orders
 CREATE POLICY "Admins can view all orders" ON orders
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -170,7 +173,7 @@ CREATE POLICY "Admins can view all orders" ON orders
 CREATE POLICY "Admins can update all orders" ON orders
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -179,7 +182,7 @@ CREATE POLICY "Admins can update all orders" ON orders
 CREATE POLICY "Users can view own order items" ON order_items
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM orders 
+      SELECT 1 FROM orders
       WHERE id = order_id AND user_id = auth.uid()
     )
   );
@@ -187,7 +190,7 @@ CREATE POLICY "Users can view own order items" ON order_items
 CREATE POLICY "Users can insert own order items" ON order_items
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM orders 
+      SELECT 1 FROM orders
       WHERE id = order_id AND user_id = auth.uid()
     )
   );
@@ -195,7 +198,7 @@ CREATE POLICY "Users can insert own order items" ON order_items
 CREATE POLICY "Admins can view all order items" ON order_items
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );

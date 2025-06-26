@@ -2486,7 +2486,7 @@ const AdminDashboard = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
                   <ShoppingCart className="h-6 w-6" />
-                  Order Details - {formatOrderId(viewingOrder.id)}
+                  Order Details - {formatOrderId(viewingOrder)}
                 </DialogTitle>
               </DialogHeader>
 

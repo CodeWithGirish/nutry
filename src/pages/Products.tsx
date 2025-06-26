@@ -376,8 +376,8 @@ const Products = () => {
                   </Button>
                 </div>
 
-                {/* Filter Content - Collapsible on Mobile */}
-                <div className={isMobileFiltersOpen ? "lg:block block" : "lg:block hidden"}>
+                {/* Filter Content */}
+                <div>
                   {/* Mobile Clear All Button */}
                   <div className="lg:hidden flex justify-end mb-4">
                     <Button

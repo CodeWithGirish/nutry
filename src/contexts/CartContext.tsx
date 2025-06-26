@@ -520,19 +520,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         .from("cart")
         .update({ quantity })
         .eq("id", cartItemId)
-        .select(
-          `
-          *,
-          product:products(*)
-        `,
-        )
+        .select("*")
         .single();
 
       if (error) throw error;
 
-      setCartItems((prev) =>
-        prev.map((item) => (item.id === cartItemId ? data : item)),
-      );
+      // Refresh cart items to ensure sync
+      await fetchCartItems();
 
       toast({
         title: "Cart updated",

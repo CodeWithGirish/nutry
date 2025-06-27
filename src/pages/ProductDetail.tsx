@@ -84,8 +84,11 @@ const ProductDetail = () => {
     }
   };
 
-  const selectedPrice =
-    product?.prices.find((p) => p.weight === selectedWeight)?.price || 0;
+  const selectedPriceData = product?.prices.find(
+    (p) => p.weight === selectedWeight,
+  );
+  const selectedPrice = selectedPriceData?.price || 0;
+  const selectedStock = selectedPriceData?.stock_quantity || 0;
 
   const discountPercentage =
     product?.original_price && selectedPrice
@@ -296,23 +299,51 @@ const ProductDetail = () => {
                 Select Weight:
               </h3>
               <div className="flex gap-2 sm:gap-3 flex-wrap">
-                {product.prices.map((price) => (
-                  <button
-                    key={price.weight}
-                    onClick={() => setSelectedWeight(price.weight)}
-                    className={cn(
-                      "px-3 sm:px-4 py-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors",
-                      selectedWeight === price.weight
-                        ? "border-brand-500 bg-brand-50 text-brand-700"
-                        : "border-gray-300 hover:border-gray-400",
-                    )}
-                  >
-                    {price.weight}
-                    <span className="block text-xs text-gray-500">
-                      ${price.price.toFixed(2)}
-                    </span>
-                  </button>
-                ))}
+                {product.prices.map((price) => {
+                  const stockLevel = price.stock_quantity || 0;
+                  const isOutOfStock = stockLevel === 0;
+                  const isLowStock = stockLevel > 0 && stockLevel <= 10;
+
+                  return (
+                    <button
+                      key={price.weight}
+                      onClick={() => setSelectedWeight(price.weight)}
+                      disabled={isOutOfStock}
+                      className={cn(
+                        "px-3 sm:px-4 py-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors relative",
+                        selectedWeight === price.weight
+                          ? "border-brand-500 bg-brand-50 text-brand-700"
+                          : isOutOfStock
+                            ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                            : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      {price.weight}
+                      <span className="block text-xs text-gray-500">
+                        ${price.price.toFixed(2)}
+                      </span>
+                      <span
+                        className={cn(
+                          "block text-xs font-medium",
+                          isOutOfStock
+                            ? "text-red-500"
+                            : isLowStock
+                              ? "text-orange-500"
+                              : "text-green-600",
+                        )}
+                      >
+                        {isOutOfStock ? "Out of Stock" : `${stockLevel} left`}
+                      </span>
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center">
+                          <span className="text-xs font-medium text-red-600">
+                            N/A
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -150,19 +150,20 @@ const Checkout = () => {
 
     if (itemsError) throw itemsError;
 
-    // Update stock quantities for each product
+    // Update stock quantities for each product weight variant
     for (const item of cartItems) {
       const { error: stockError } = await supabase.rpc(
         "decrement_product_stock",
         {
           product_id: item.product_id,
+          weight_variant: item.selected_weight,
           quantity_to_subtract: item.quantity,
         },
       );
 
       if (stockError) {
         console.error(
-          `Failed to update stock for product ${item.product_id}:`,
+          `Failed to update stock for product ${item.product_id} (${item.selected_weight}):`,
           stockError,
         );
         // Continue with other products even if one fails

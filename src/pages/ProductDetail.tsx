@@ -312,6 +312,36 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Stock Information */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Stock:
+                </span>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    (product.stock_quantity || 0) > 10
+                      ? "text-green-600"
+                      : (product.stock_quantity || 0) > 0
+                        ? "text-orange-600"
+                        : "text-red-600",
+                  )}
+                >
+                  {product.stock_quantity || 0} items available
+                </span>
+              </div>
+              {(product.stock_quantity || 0) <= 10 &&
+                (product.stock_quantity || 0) > 0 && (
+                  <p className="text-xs text-orange-600">
+                    Limited stock! Only {product.stock_quantity} left
+                  </p>
+                )}
+              {(product.stock_quantity || 0) === 0 && (
+                <p className="text-xs text-red-600">Currently out of stock</p>
+              )}
+            </div>
+
             {/* Quantity */}
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
@@ -333,12 +363,23 @@ const ProductDetail = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() =>
+                    setQuantity(
+                      Math.min(product.stock_quantity || 0, quantity + 1),
+                    )
+                  }
+                  disabled={quantity >= (product.stock_quantity || 0)}
                   className="h-8 w-8 sm:h-10 sm:w-10 p-0"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
+              {quantity >= (product.stock_quantity || 0) &&
+                (product.stock_quantity || 0) > 0 && (
+                  <p className="text-xs text-orange-600">
+                    Maximum available quantity selected
+                  </p>
+                )}
             </div>
 
             {/* Action Buttons */}

@@ -57,6 +57,7 @@ export interface Product {
   rating: number;
   review_count: number;
   in_stock: boolean;
+  stock_quantity: number;
   is_organic: boolean;
   created_at: string;
   updated_at: string;

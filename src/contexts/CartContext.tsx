@@ -208,10 +208,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      if (!productData.in_stock) {
+      // Find the specific weight's stock
+      const weightData = productData.prices?.find(
+        (p: any) => p.weight === weight,
+      );
+      const weightStock = weightData?.stock_quantity || 0;
+
+      if (!productData.in_stock || weightStock === 0) {
         toast({
           title: "Out of stock",
-          description: `${productData.name} is currently out of stock`,
+          description: `${productData.name} (${weight}) is currently out of stock`,
           variant: "destructive",
         });
         return;
@@ -228,13 +234,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         totalRequestedQuantity = existingItem.quantity + quantity;
       }
 
-      // Check if requested quantity exceeds available stock
-      if (totalRequestedQuantity > productData.stock_quantity) {
-        const availableQuantity =
-          productData.stock_quantity - (existingItem?.quantity || 0);
+      // Check if requested quantity exceeds available stock for this weight
+      if (totalRequestedQuantity > weightStock) {
+        const availableQuantity = weightStock - (existingItem?.quantity || 0);
         toast({
           title: "Insufficient stock",
-          description: `Only ${availableQuantity} items available. You currently have ${existingItem?.quantity || 0} in your cart.`,
+          description: `Only ${availableQuantity} items available for ${weight}. You currently have ${existingItem?.quantity || 0} in your cart.`,
           variant: "destructive",
         });
         return;

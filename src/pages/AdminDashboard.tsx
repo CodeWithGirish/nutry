@@ -323,6 +323,7 @@ const AdminDashboard = () => {
         fetchOrders(),
         fetchReviews(),
         fetchUsers(),
+        fetchContactMessages(),
         fetchStats(),
       ]);
 
@@ -528,6 +529,33 @@ const AdminDashboard = () => {
       toast({
         title: "Users Load Error",
         description: "Using demo data. Database connection may be limited.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchContactMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("contact_messages")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Supabase error fetching contact messages:", error);
+        throw new Error(
+          `Failed to fetch contact messages: ${error.message || JSON.stringify(error)}`,
+        );
+      }
+      setContactMessages(data || []);
+      console.log("Contact messages fetched successfully:", data?.length || 0);
+    } catch (error: any) {
+      console.error("Error fetching contact messages:", error.message || error);
+      setContactMessages([]);
+      // Show user-friendly error
+      toast({
+        title: "Contact Messages Load Error",
+        description: "Database connection may be limited.",
         variant: "destructive",
       });
     }

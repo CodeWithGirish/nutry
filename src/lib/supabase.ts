@@ -52,7 +52,7 @@ export interface Product {
   category: string;
   image_url: string;
   images: string[];
-  prices: { weight: string; price: number }[];
+  prices: { weight: string; price: number; stock_quantity: number }[];
   original_price?: number;
   rating: number;
   review_count: number;

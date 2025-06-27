@@ -1536,44 +1536,88 @@ const AdminDashboard = () => {
                           </Button>
                         </div>
                         {newProduct.prices.map((price, index) => (
-                          <div key={index} className="flex gap-2 items-center">
-                            <Input
-                              placeholder="250g"
-                              value={price.weight}
-                              onChange={(e) =>
-                                updatePriceVariant(
-                                  index,
-                                  "weight",
-                                  e.target.value,
-                                  "new",
-                                )
-                              }
-                              className="flex-1"
-                            />
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="24.99"
-                              value={price.price || ""}
-                              onChange={(e) =>
-                                updatePriceVariant(
-                                  index,
-                                  "price",
-                                  parseFloat(e.target.value) || 0,
-                                  "new",
-                                )
-                              }
-                              className="flex-1"
-                            />
-                            {newProduct.prices.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removePriceVariant(index, "new")}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                          <div key={index} className="space-y-2">
+                            <div className="flex gap-2 items-center">
+                              <div className="flex-1">
+                                <Input
+                                  placeholder="250g"
+                                  value={price.weight}
+                                  onChange={(e) =>
+                                    updatePriceVariant(
+                                      index,
+                                      "weight",
+                                      e.target.value,
+                                      "new",
+                                    )
+                                  }
+                                />
+                                <Label className="text-xs text-gray-500 mt-1">
+                                  Weight
+                                </Label>
+                              </div>
+                              <div className="flex-1">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="24.99"
+                                  value={price.price || ""}
+                                  onChange={(e) =>
+                                    updatePriceVariant(
+                                      index,
+                                      "price",
+                                      parseFloat(e.target.value) || 0,
+                                      "new",
+                                    )
+                                  }
+                                />
+                                <Label className="text-xs text-gray-500 mt-1">
+                                  Price ($)
+                                </Label>
+                              </div>
+                              <div className="flex-1">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="100"
+                                  value={price.stock_quantity || ""}
+                                  onChange={(e) =>
+                                    updatePriceVariant(
+                                      index,
+                                      "stock_quantity",
+                                      parseInt(e.target.value) || 0,
+                                      "new",
+                                    )
+                                  }
+                                />
+                                <Label className="text-xs text-gray-500 mt-1">
+                                  Stock Qty
+                                </Label>
+                              </div>
+                              {newProduct.prices.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    removePriceVariant(index, "new")
+                                  }
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            {(price.stock_quantity || 0) < 10 &&
+                              (price.stock_quantity || 0) > 0 && (
+                                <div className="flex items-center gap-1 text-amber-600 text-xs">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Low stock warning
+                                </div>
+                              )}
+                            {(price.stock_quantity || 0) === 0 && (
+                              <div className="flex items-center gap-1 text-red-600 text-xs">
+                                <XCircle className="h-3 w-3" />
+                                Out of stock
+                              </div>
                             )}
                           </div>
                         ))}

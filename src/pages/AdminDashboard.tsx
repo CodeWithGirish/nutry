@@ -2093,6 +2093,167 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
+            {/* COD Orders Tracking */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Cash on Delivery Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "pending")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-blue-600">Pending COD</div>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "confirmed")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-orange-600">Confirmed COD</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "shipped")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-green-600">Shipped COD</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatPrice(
+                        getCodOrders()
+                          .filter((o) => o.status === "delivered")
+                          .reduce((sum, order) => sum + order.total_amount, 0),
+                      )}
+                    </div>
+                    <div className="text-sm text-purple-600">
+                      COD Revenue (Collected)
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getCodOrders()
+                        .slice(0, 10)
+                        .map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm font-medium">
+                              {formatOrderId(order)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{order.user_name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {order.user_email}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.status === "delivered"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.status === "shipped"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : order.status === "confirmed"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-gray-100 text-gray-700"
+                                }
+                              >
+                                {order.status.charAt(0).toUpperCase() +
+                                  order.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.payment_status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                                }
+                              >
+                                {order.payment_status === "paid"
+                                  ? "Collected"
+                                  : "Pending Collection"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(order.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setViewingOrder(order)}
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                {order.payment_status === "pending" &&
+                                  order.status === "delivered" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600"
+                                      onClick={() =>
+                                        handleUpdatePaymentStatus(
+                                          order.id,
+                                          "paid",
+                                        )
+                                      }
+                                    >
+                                      Mark Collected
+                                    </Button>
+                                  )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {getCodOrders().length > 10 && (
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-gray-500">
+                      Showing 10 of {getCodOrders().length} COD orders.
+                      <span className="text-blue-600 cursor-pointer ml-1">
+                        View all in Order Management below
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Order Management</CardTitle>

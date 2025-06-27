@@ -90,6 +90,7 @@ import {
   formatOrderId,
 } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import StockManager from "@/components/admin/StockManager";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

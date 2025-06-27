@@ -402,36 +402,68 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch orders first
+      const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select(
-          `
-          *,
-          profiles(full_name, email)
-        `,
-        )
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
+      if (ordersError) {
         console.error("Supabase error fetching orders:", {
-          message: error.message,
-          code: error.code,
-          details: error.details,
+          message: ordersError.message,
+          code: ordersError.code,
+          details: ordersError.details,
         });
         throw new Error(
-          `Failed to fetch orders: ${error.message || "Unknown error"}`,
+          `Failed to fetch orders: ${ordersError.message || "Unknown error"}`,
         );
       }
 
-      // Transform data to include user info
-      const transformedOrders = (data || []).map((order) => ({
+      // Get unique user IDs from orders
+      const userIds = [
+        ...new Set(
+          (ordersData || []).map((order) => order.user_id).filter(Boolean),
+        ),
+      ];
+
+      let profilesData: any[] = [];
+
+      // Fetch user profiles if we have user IDs
+      if (userIds.length > 0) {
+        try {
+          const { data: profiles, error: profilesError } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", userIds);
+
+          if (profilesError) {
+            console.warn("Could not fetch user profiles:", profilesError);
+          } else {
+            profilesData = profiles || [];
+          }
+        } catch (profileError: any) {
+          console.warn("Error fetching profiles:", profileError);
+        }
+      }
+
+      // Create a map of user profiles for efficient lookup
+      const profileMap = profilesData.reduce(
+        (acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+
+      // Transform orders to include user info
+      const transformedOrders = (ordersData || []).map((order) => ({
         ...order,
-        user_name: order.profiles?.full_name || "Unknown User",
-        user_email: order.profiles?.email || "Unknown Email",
+        user_name: profileMap[order.user_id]?.full_name || "Guest User",
+        user_email: profileMap[order.user_id]?.email || "guest@example.com",
       }));
 
       setOrders(transformedOrders);
-      console.log("Orders fetched successfully:", data?.length || 0);
+      console.log("Orders fetched successfully:", transformedOrders.length);
     } catch (error: any) {
       console.error("Error fetching orders:", error.message || error);
       setOrders([]);

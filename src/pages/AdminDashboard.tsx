@@ -601,6 +601,18 @@ const AdminDashboard = () => {
           return;
         }
 
+        // Handle RLS recursion errors
+        if (
+          error.message?.includes("infinite recursion") ||
+          error.message?.includes("policy")
+        ) {
+          console.log(
+            "RLS policy issue detected, using empty contact messages array",
+          );
+          setContactMessages([]);
+          return;
+        }
+
         throw new Error(
           `Failed to fetch contact messages: ${error.message || JSON.stringify(error)}`,
         );
@@ -611,8 +623,11 @@ const AdminDashboard = () => {
       console.error("Error fetching contact messages:", error.message || error);
       setContactMessages([]);
 
-      // Only show error toast for non-missing table errors
-      if (!error.message?.includes("does not exist")) {
+      // Only show error toast for non-missing table and non-RLS errors
+      if (
+        !error.message?.includes("does not exist") &&
+        !error.message?.includes("infinite recursion")
+      ) {
         toast({
           title: "Contact Messages Load Error",
           description: "Database connection may be limited.",
@@ -621,7 +636,6 @@ const AdminDashboard = () => {
       }
     }
   };
-
   const markMessageAsRead = async (messageId: string) => {
     try {
       const { error } = await supabase

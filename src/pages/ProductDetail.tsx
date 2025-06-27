@@ -435,14 +435,12 @@ const ProductDetail = () => {
                     <>
                       <ShoppingCart className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="hidden sm:inline">
-                        {product.in_stock && (product.stock_quantity || 0) > 0
+                        {product.in_stock && selectedStock > 0
                           ? "Add to Cart"
                           : "Out of Stock"}
                       </span>
                       <span className="sm:hidden">
-                        {product.in_stock && (product.stock_quantity || 0) > 0
-                          ? "Add"
-                          : "Out"}
+                        {product.in_stock && selectedStock > 0 ? "Add" : "Out"}
                       </span>
                     </>
                   )}

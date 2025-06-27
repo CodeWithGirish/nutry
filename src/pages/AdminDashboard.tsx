@@ -876,6 +876,19 @@ const AdminDashboard = () => {
   const handleEditProduct = async () => {
     if (!editingProduct) return;
 
+    // Validate price variants
+    const hasEmptyWeights = editingProduct.prices.some(
+      (price) => !price.weight || price.weight.trim() === "",
+    );
+    if (hasEmptyWeights) {
+      toast({
+        title: "Error",
+        description: "Please fill in all weight variants",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Calculate total stock and in_stock status based on variants
       const totalStock = editingProduct.prices.reduce(

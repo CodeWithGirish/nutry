@@ -59,6 +59,8 @@ export interface Product {
   in_stock: boolean;
   stock_quantity: number;
   is_organic: boolean;
+  is_featured?: boolean;
+  features?: string[];
   created_at: string;
   updated_at: string;
 }

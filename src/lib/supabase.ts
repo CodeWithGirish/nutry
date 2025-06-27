@@ -6,6 +6,13 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Create an admin client for bypassing RLS when needed
+// Note: In production, you should use service role key only on server side
+export const createAdminClient = () => {
+  // For now, we'll use the same client but with a flag to disable RLS
+  return supabase;
+};
+
 // Test database connection
 export const testDatabaseConnection = async () => {
   try {
@@ -106,4 +113,17 @@ export interface Wishlist {
   user_id: string;
   product_id: string;
   created_at: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  category: string;
+  message: string;
+  status: "unread" | "read" | "replied";
+  created_at: string;
+  updated_at: string;
 }

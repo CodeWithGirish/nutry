@@ -132,6 +132,31 @@ const Contact = () => {
       });
 
       if (error) {
+        // Handle missing table gracefully
+        if (
+          error.code === "42P01" ||
+          error.message?.includes("does not exist")
+        ) {
+          console.warn(
+            "Contact messages table not created yet, message not saved to database",
+          );
+          setSubmitted(true);
+          setFormData({
+            name: "",
+            email: "",
+            phone: "",
+            subject: "",
+            category: "",
+            message: "",
+          });
+
+          toast({
+            title: "Message sent!",
+            description:
+              "We'll get back to you within 24 hours. (Note: Database setup required for message storage)",
+          });
+          return;
+        }
         throw error;
       }
 

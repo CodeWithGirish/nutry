@@ -366,7 +366,7 @@ const AdminDashboard = () => {
         console.error("Supabase error fetching products:", {
           message: error.message,
           code: error.code,
-          details: error.details
+          details: error.details,
         });
         throw new Error(
           `Failed to fetch products: ${error.message || "Unknown error"}`,
@@ -493,7 +493,7 @@ const AdminDashboard = () => {
         console.error("Supabase error fetching orders:", {
           message: error.message,
           code: error.code,
-          details: error.details
+          details: error.details,
         });
         throw new Error(
           `Failed to fetch orders: ${error.message || "Unknown error"}`,
@@ -520,12 +520,23 @@ const AdminDashboard = () => {
       });
     }
   };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "user")
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Supabase error fetching users:", error);
+        console.error("Supabase error fetching users:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         throw new Error(
-          `Failed to fetch users: ${error.message || JSON.stringify(error)}`,
+          `Failed to fetch users: ${error.message || "Unknown error"}`,
         );
       }
       setUsers(data || []);
@@ -536,6 +547,43 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Users Load Error",
+        description: "Using demo data. Database connection may be limited.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("product_reviews")
+        .select(
+          `
+          *,
+          products(name),
+          profiles(full_name, email)
+        `,
+        )
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Supabase error fetching reviews:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
+        throw new Error(
+          `Failed to fetch reviews: ${error.message || "Unknown error"}`,
+        );
+      }
+      setReviews(data || []);
+      console.log("Reviews fetched successfully:", data?.length || 0);
+    } catch (error: any) {
+      console.error("Error fetching reviews:", error.message || error);
+      setReviews([]);
+      // Show user-friendly error
+      toast({
+        title: "Reviews Load Error",
         description: "Using demo data. Database connection may be limited.",
         variant: "destructive",
       });
@@ -553,8 +601,13 @@ const AdminDashboard = () => {
         console.error("Supabase error fetching contact messages:", error);
 
         // Handle missing table gracefully
-        if (error.code === "42P01" || error.message?.includes("does not exist")) {
-          console.log("Contact messages table not created yet, using empty array");
+        if (
+          error.code === "42P01" ||
+          error.message?.includes("does not exist")
+        ) {
+          console.log(
+            "Contact messages table not created yet, using empty array",
+          );
           setContactMessages([]);
           return;
         }
@@ -620,16 +673,19 @@ const AdminDashboard = () => {
 
   // Filter orders by payment method
   const getCodOrders = () => {
-    return orders.filter(order => order.payment_method === "cod");
+    return orders.filter((order) => order.payment_method === "cod");
   };
 
-  const handleUpdatePaymentStatus = async (orderId: string, paymentStatus: "paid" | "pending") => {
+  const handleUpdatePaymentStatus = async (
+    orderId: string,
+    paymentStatus: "paid" | "pending",
+  ) => {
     try {
       const { error } = await supabase
         .from("orders")
         .update({
           payment_status: paymentStatus,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", orderId);
 
@@ -638,12 +694,12 @@ const AdminDashboard = () => {
       }
 
       // Update local state
-      setOrders(prev =>
-        prev.map(order =>
+      setOrders((prev) =>
+        prev.map((order) =>
           order.id === orderId
             ? { ...order, payment_status: paymentStatus }
-            : order
-        )
+            : order,
+        ),
       );
 
       toast({
@@ -2161,19 +2217,28 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
-                      {getCodOrders().filter(o => o.status === "pending").length}
+                      {
+                        getCodOrders().filter((o) => o.status === "pending")
+                          .length
+                      }
                     </div>
                     <div className="text-sm text-blue-600">Pending COD</div>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">
-                      {getCodOrders().filter(o => o.status === "confirmed").length}
+                      {
+                        getCodOrders().filter((o) => o.status === "confirmed")
+                          .length
+                      }
                     </div>
                     <div className="text-sm text-orange-600">Confirmed COD</div>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {getCodOrders().filter(o => o.status === "shipped").length}
+                      {
+                        getCodOrders().filter((o) => o.status === "shipped")
+                          .length
+                      }
                     </div>
                     <div className="text-sm text-green-600">Shipped COD</div>
                   </div>
@@ -2181,11 +2246,13 @@ const AdminDashboard = () => {
                     <div className="text-2xl font-bold text-purple-600">
                       {formatPrice(
                         getCodOrders()
-                          .filter(o => o.status === "delivered")
-                          .reduce((sum, order) => sum + order.total_amount, 0)
+                          .filter((o) => o.status === "delivered")
+                          .reduce((sum, order) => sum + order.total_amount, 0),
                       )}
                     </div>
-                    <div className="text-sm text-purple-600">COD Revenue (Collected)</div>
+                    <div className="text-sm text-purple-600">
+                      COD Revenue (Collected)
+                    </div>
                   </div>
                 </div>
 
@@ -2203,70 +2270,85 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getCodOrders().slice(0, 10).map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-mono text-sm font-medium">
-                            {formatOrderId(order)}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{order.user_name}</p>
-                              <p className="text-sm text-gray-500">{order.user_email}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {formatPrice(order.total_amount)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={
-                                order.status === "delivered"
-                                  ? "bg-green-100 text-green-700"
-                                  : order.status === "shipped"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : order.status === "confirmed"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }
-                            >
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={
-                                order.payment_status === "paid"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }
-                            >
-                              {order.payment_status === "paid" ? "Collected" : "Pending Collection"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatDate(order.created_at)}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setViewingOrder(order)}
+                      {getCodOrders()
+                        .slice(0, 10)
+                        .map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm font-medium">
+                              {formatOrderId(order)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{order.user_name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {order.user_email}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.status === "delivered"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.status === "shipped"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : order.status === "confirmed"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-gray-100 text-gray-700"
+                                }
                               >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              {order.payment_status === "pending" && order.status === "delivered" && (
+                                {order.status.charAt(0).toUpperCase() +
+                                  order.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.payment_status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                                }
+                              >
+                                {order.payment_status === "paid"
+                                  ? "Collected"
+                                  : "Pending Collection"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(order.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-green-600"
-                                  onClick={() => handleUpdatePaymentStatus(order.id, "paid")}
+                                  onClick={() => setViewingOrder(order)}
                                 >
-                                  Mark Collected
+                                  <Eye className="h-3 w-3" />
                                 </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                                {order.payment_status === "pending" &&
+                                  order.status === "delivered" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600"
+                                      onClick={() =>
+                                        handleUpdatePaymentStatus(
+                                          order.id,
+                                          "paid",
+                                        )
+                                      }
+                                    >
+                                      Mark Collected
+                                    </Button>
+                                  )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -2520,9 +2602,14 @@ const AdminDashboard = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="h-5 w-5" />
                   Contact Messages
-                  {contactMessages.filter(msg => msg.status === "unread").length > 0 && (
+                  {contactMessages.filter((msg) => msg.status === "unread")
+                    .length > 0 && (
                     <Badge className="bg-red-100 text-red-700">
-                      {contactMessages.filter(msg => msg.status === "unread").length} new
+                      {
+                        contactMessages.filter((msg) => msg.status === "unread")
+                          .length
+                      }{" "}
+                      new
                     </Badge>
                   )}
                 </CardTitle>
@@ -2545,7 +2632,9 @@ const AdminDashboard = () => {
                       {contactMessages.slice(0, 10).map((message) => (
                         <TableRow
                           key={message.id}
-                          className={message.status === "unread" ? "bg-blue-50" : ""}
+                          className={
+                            message.status === "unread" ? "bg-blue-50" : ""
+                          }
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -2555,7 +2644,9 @@ const AdminDashboard = () => {
                               <div>
                                 <p className="font-medium">{message.name}</p>
                                 {message.phone && (
-                                  <p className="text-sm text-gray-500">{message.phone}</p>
+                                  <p className="text-sm text-gray-500">
+                                    {message.phone}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -2580,14 +2671,17 @@ const AdminDashboard = () => {
                                 message.status === "unread"
                                   ? "bg-blue-100 text-blue-700"
                                   : message.status === "read"
-                                  ? "bg-gray-100 text-gray-700"
-                                  : "bg-green-100 text-green-700"
+                                    ? "bg-gray-100 text-gray-700"
+                                    : "bg-green-100 text-green-700"
                               }
                             >
-                              {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
+                              {message.status.charAt(0).toUpperCase() +
+                                message.status.slice(1)}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatDate(message.created_at)}</TableCell>
+                          <TableCell>
+                            {formatDate(message.created_at)}
+                          </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Dialog>
@@ -2606,50 +2700,87 @@ const AdminDashboard = () => {
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
                                   <DialogHeader>
-                                    <DialogTitle>Contact Message Details</DialogTitle>
+                                    <DialogTitle>
+                                      Contact Message Details
+                                    </DialogTitle>
                                   </DialogHeader>
                                   <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                       <div>
-                                        <Label className="text-sm font-medium">Name</Label>
-                                        <p className="text-sm">{message.name}</p>
+                                        <Label className="text-sm font-medium">
+                                          Name
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.name}
+                                        </p>
                                       </div>
                                       <div>
-                                        <Label className="text-sm font-medium">Email</Label>
-                                        <p className="text-sm">{message.email}</p>
+                                        <Label className="text-sm font-medium">
+                                          Email
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.email}
+                                        </p>
                                       </div>
                                       {message.phone && (
                                         <div>
-                                          <Label className="text-sm font-medium">Phone</Label>
-                                          <p className="text-sm">{message.phone}</p>
+                                          <Label className="text-sm font-medium">
+                                            Phone
+                                          </Label>
+                                          <p className="text-sm">
+                                            {message.phone}
+                                          </p>
                                         </div>
                                       )}
                                       <div>
-                                        <Label className="text-sm font-medium">Category</Label>
-                                        <p className="text-sm">{message.category}</p>
+                                        <Label className="text-sm font-medium">
+                                          Category
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.category}
+                                        </p>
                                       </div>
                                     </div>
                                     <div>
-                                      <Label className="text-sm font-medium">Subject</Label>
-                                      <p className="text-sm">{message.subject}</p>
+                                      <Label className="text-sm font-medium">
+                                        Subject
+                                      </Label>
+                                      <p className="text-sm">
+                                        {message.subject}
+                                      </p>
                                     </div>
                                     <div>
-                                      <Label className="text-sm font-medium">Message</Label>
+                                      <Label className="text-sm font-medium">
+                                        Message
+                                      </Label>
                                       <div className="bg-gray-50 p-3 rounded-lg">
-                                        <p className="text-sm whitespace-pre-wrap">{message.message}</p>
+                                        <p className="text-sm whitespace-pre-wrap">
+                                          {message.message}
+                                        </p>
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
                                       <div>
-                                        <span className="font-medium">Received:</span> {formatDate(message.created_at)}
+                                        <span className="font-medium">
+                                          Received:
+                                        </span>{" "}
+                                        {formatDate(message.created_at)}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Status:</span> {message.status}
+                                        <span className="font-medium">
+                                          Status:
+                                        </span>{" "}
+                                        {message.status}
                                       </div>
                                     </div>
                                     <div className="flex gap-2 pt-4">
                                       <Button
-                                        onClick={() => window.open(`mailto:${message.email}?subject=Re: ${message.subject}`, '_blank')}
+                                        onClick={() =>
+                                          window.open(
+                                            `mailto:${message.email}?subject=Re: ${message.subject}`,
+                                            "_blank",
+                                          )
+                                        }
                                         className="flex-1"
                                       >
                                         <Mail className="h-4 w-4 mr-2" />
@@ -2658,7 +2789,12 @@ const AdminDashboard = () => {
                                       {message.phone && (
                                         <Button
                                           variant="outline"
-                                          onClick={() => window.open(`tel:${message.phone}`, '_blank')}
+                                          onClick={() =>
+                                            window.open(
+                                              `tel:${message.phone}`,
+                                              "_blank",
+                                            )
+                                          }
                                         >
                                           <Phone className="h-4 w-4 mr-2" />
                                           Call

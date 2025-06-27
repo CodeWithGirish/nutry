@@ -295,7 +295,13 @@ export default function BulkStockManager({
     });
   };
 
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  const categories = Array.from(
+    new Set(
+      products
+        .map((p) => p.category)
+        .filter((category) => category && category.trim() !== ""),
+    ),
+  );
   const weights = Array.from(
     new Set(
       products.flatMap((p) =>

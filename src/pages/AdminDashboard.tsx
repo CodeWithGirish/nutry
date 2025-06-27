@@ -138,7 +138,7 @@ const AdminDashboard = () => {
     category: "",
     image_url: "🥜",
     images: [] as string[],
-    prices: [{ weight: "250g", price: 0 }],
+    prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
     original_price: null as number | null,
     is_organic: false,
     in_stock: true,
@@ -823,7 +823,7 @@ const AdminDashboard = () => {
         category: "",
         image_url: "🥜",
         images: [],
-        prices: [{ weight: "250g", price: 0 }],
+        prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
         original_price: null,
         is_organic: false,
         in_stock: true,
@@ -1002,12 +1002,18 @@ const AdminDashboard = () => {
     if (type === "new") {
       setNewProduct({
         ...newProduct,
-        prices: [...newProduct.prices, { weight: "", price: 0 }],
+        prices: [
+          ...newProduct.prices,
+          { weight: "", price: 0, stock_quantity: 0 },
+        ],
       });
     } else if (editingProduct) {
       setEditingProduct({
         ...editingProduct,
-        prices: [...editingProduct.prices, { weight: "", price: 0 }],
+        prices: [
+          ...editingProduct.prices,
+          { weight: "", price: 0, stock_quantity: 0 },
+        ],
       });
     }
   };
@@ -1028,7 +1034,7 @@ const AdminDashboard = () => {
 
   const updatePriceVariant = (
     index: number,
-    field: "weight" | "price",
+    field: "weight" | "price" | "stock_quantity",
     value: string | number,
     type: "new" | "edit",
   ) => {

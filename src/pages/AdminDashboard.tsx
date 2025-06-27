@@ -2550,6 +2550,106 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
+                {/* Price Variants */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Price Variants</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addPriceVariant("edit")}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Variant
+                    </Button>
+                  </div>
+                  {editingProduct.prices.map((price, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="250g"
+                            value={price.weight}
+                            onChange={(e) =>
+                              updatePriceVariant(
+                                index,
+                                "weight",
+                                e.target.value,
+                                "edit",
+                              )
+                            }
+                          />
+                          <Label className="text-xs text-gray-500 mt-1">
+                            Weight
+                          </Label>
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="24.99"
+                            value={price.price || ""}
+                            onChange={(e) =>
+                              updatePriceVariant(
+                                index,
+                                "price",
+                                parseFloat(e.target.value) || 0,
+                                "edit",
+                              )
+                            }
+                          />
+                          <Label className="text-xs text-gray-500 mt-1">
+                            Price ($)
+                          </Label>
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="100"
+                            value={price.stock_quantity || ""}
+                            onChange={(e) =>
+                              updatePriceVariant(
+                                index,
+                                "stock_quantity",
+                                parseInt(e.target.value) || 0,
+                                "edit",
+                              )
+                            }
+                          />
+                          <Label className="text-xs text-gray-500 mt-1">
+                            Stock Qty
+                          </Label>
+                        </div>
+                        {editingProduct.prices.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removePriceVariant(index, "edit")}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      {(price.stock_quantity || 0) < 10 &&
+                        (price.stock_quantity || 0) > 0 && (
+                          <div className="flex items-center gap-1 text-amber-600 text-xs">
+                            <AlertTriangle className="h-3 w-3" />
+                            Low stock warning
+                          </div>
+                        )}
+                      {(price.stock_quantity || 0) === 0 && (
+                        <div className="flex items-center gap-1 text-red-600 text-xs">
+                          <XCircle className="h-3 w-3" />
+                          Out of stock
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox

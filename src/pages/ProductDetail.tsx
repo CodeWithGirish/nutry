@@ -226,10 +226,16 @@ const ProductDetail = () => {
                     Organic
                   </Badge>
                 )}
-                {!product.in_stock && (
+                {!product.in_stock || (product.stock_quantity || 0) === 0 ? (
                   <Badge className="bg-red-100 text-red-700 text-xs sm:text-sm">
                     Out of Stock
                   </Badge>
+                ) : (
+                  (product.stock_quantity || 0) <= 10 && (
+                    <Badge className="bg-orange-100 text-orange-700 text-xs sm:text-sm">
+                      Low Stock
+                    </Badge>
+                  )
                 )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">

@@ -81,7 +81,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { supabase, type Product, type Order } from "@/lib/supabase";
+import {
+  supabase,
+  type Product,
+  type Order,
+  type ContactMessage,
+} from "@/lib/supabase";
 import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "@/lib/email";
 import {
   parsePrices,
@@ -104,6 +109,7 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
   // UI states

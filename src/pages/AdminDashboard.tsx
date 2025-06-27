@@ -1844,12 +1844,30 @@ const AdminDashboard = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">
-                                {product.stock_quantity || 0}
-                              </span>
-                              {(product.stock_quantity || 0) < 10 && (
-                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                            <div className="space-y-1">
+                              {parsePrices(product.prices).map(
+                                (priceVariant, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2 text-sm"
+                                  >
+                                    <span className="text-gray-600 min-w-12">
+                                      {priceVariant.weight}:
+                                    </span>
+                                    <span className="font-medium">
+                                      {priceVariant.stock_quantity || 0}
+                                    </span>
+                                    {(priceVariant.stock_quantity || 0) < 10 &&
+                                      (priceVariant.stock_quantity || 0) >
+                                        0 && (
+                                        <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                      )}
+                                    {(priceVariant.stock_quantity || 0) ===
+                                      0 && (
+                                      <XCircle className="h-3 w-3 text-red-500" />
+                                    )}
+                                  </div>
+                                ),
                               )}
                             </div>
                           </TableCell>

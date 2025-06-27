@@ -460,7 +460,7 @@ const ProductDetail = () => {
                 </Button>
               </div>
 
-              {product.in_stock && (product.stock_quantity || 0) > 0 && (
+              {product.in_stock && selectedStock > 0 && (
                 <Button
                   onClick={handleBuyNow}
                   variant="outline"

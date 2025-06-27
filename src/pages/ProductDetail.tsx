@@ -392,7 +392,11 @@ const ProductDetail = () => {
                 <Button
                   onClick={handleAddToCart}
                   className="flex-1 bg-brand-600 hover:bg-brand-700 text-sm sm:text-base py-2 sm:py-3"
-                  disabled={!product.in_stock || addingToCart}
+                  disabled={
+                    !product.in_stock ||
+                    (product.stock_quantity || 0) === 0 ||
+                    addingToCart
+                  }
                 >
                   {addingToCart ? (
                     <>
@@ -404,10 +408,14 @@ const ProductDetail = () => {
                     <>
                       <ShoppingCart className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="hidden sm:inline">
-                        {product.in_stock ? "Add to Cart" : "Notify Me"}
+                        {product.in_stock && (product.stock_quantity || 0) > 0
+                          ? "Add to Cart"
+                          : "Out of Stock"}
                       </span>
                       <span className="sm:hidden">
-                        {product.in_stock ? "Add" : "Notify"}
+                        {product.in_stock && (product.stock_quantity || 0) > 0
+                          ? "Add"
+                          : "Out"}
                       </span>
                     </>
                   )}

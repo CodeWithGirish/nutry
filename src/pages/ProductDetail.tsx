@@ -351,29 +351,30 @@ const ProductDetail = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">
-                  Stock:
+                  Stock for {selectedWeight}:
                 </span>
                 <span
                   className={cn(
                     "text-sm font-medium",
-                    (product.stock_quantity || 0) > 10
+                    selectedStock > 10
                       ? "text-green-600"
-                      : (product.stock_quantity || 0) > 0
+                      : selectedStock > 0
                         ? "text-orange-600"
                         : "text-red-600",
                   )}
                 >
-                  {product.stock_quantity || 0} items available
+                  {selectedStock} items available
                 </span>
               </div>
-              {(product.stock_quantity || 0) <= 10 &&
-                (product.stock_quantity || 0) > 0 && (
-                  <p className="text-xs text-orange-600">
-                    Limited stock! Only {product.stock_quantity} left
-                  </p>
-                )}
-              {(product.stock_quantity || 0) === 0 && (
-                <p className="text-xs text-red-600">Currently out of stock</p>
+              {selectedStock <= 10 && selectedStock > 0 && (
+                <p className="text-xs text-orange-600">
+                  Limited stock! Only {selectedStock} left for {selectedWeight}
+                </p>
+              )}
+              {selectedStock === 0 && (
+                <p className="text-xs text-red-600">
+                  {selectedWeight} is currently out of stock
+                </p>
               )}
             </div>
 

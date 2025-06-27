@@ -33,19 +33,30 @@ export function formatDateTime(date: string | Date) {
 // Utility to safely parse prices from database JSON fields
 export function parsePrices(
   prices: any,
-): Array<{ weight: string; price: number }> {
+): Array<{ weight: string; price: number; stock_quantity?: number }> {
   try {
+    let parsed: any[] = [];
+
     if (typeof prices === "string") {
-      return JSON.parse(prices);
+      parsed = JSON.parse(prices);
+    } else if (Array.isArray(prices)) {
+      parsed = prices;
+    } else {
+      // Fallback for invalid data
+      return [{ weight: "250g", price: 0, stock_quantity: 0 }];
     }
-    if (Array.isArray(prices)) {
-      return prices;
-    }
-    // Fallback for invalid data
-    return [{ weight: "250g", price: 0 }];
+
+    // Filter out entries with empty or invalid weights
+    return parsed.filter(
+      (price) =>
+        price &&
+        typeof price.weight === "string" &&
+        price.weight.trim() !== "" &&
+        typeof price.price === "number",
+    );
   } catch (error) {
     console.error("Error parsing prices:", error);
-    return [{ weight: "250g", price: 0 }];
+    return [{ weight: "250g", price: 0, stock_quantity: 0 }];
   }
 }
 

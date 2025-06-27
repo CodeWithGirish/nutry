@@ -193,7 +193,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       // First, fetch the product to check stock availability
       const { data: productData, error: productError } = await supabase
         .from("products")
-        .select("stock_quantity, name, in_stock")
+        .select("stock_quantity, name, in_stock, prices")
         .eq("id", productId)
         .single();
 

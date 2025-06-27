@@ -561,6 +561,49 @@ const AdminDashboard = () => {
     }
   };
 
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from("contact_messages")
+        .update({ status: "read", updated_at: new Date().toISOString() })
+        .eq("id", messageId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setContactMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                status: "read" as const,
+                updated_at: new Date().toISOString(),
+              }
+            : msg,
+        ),
+      );
+
+      toast({
+        title: "Message marked as read",
+        description: "Status updated successfully",
+      });
+    } catch (error: any) {
+      console.error("Error marking message as read:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update message status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filter orders by payment method
+  const getCodOrders = () => {
+    return orders.filter((order) => order.payment_method === "cod");
+  };
+
   const getDateRange = (range: string) => {
     const now = new Date();
     const startDate = new Date();

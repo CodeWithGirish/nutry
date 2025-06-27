@@ -1419,16 +1419,21 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Product Management</CardTitle>
-                <Dialog
-                  open={isAddProductOpen}
-                  onOpenChange={setIsAddProductOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="bg-brand-600 hover:bg-brand-700">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Product
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex gap-2">
+                  <BulkStockManager
+                    products={products}
+                    onStockUpdate={() => fetchProducts()}
+                  />
+                  <Dialog
+                    open={isAddProductOpen}
+                    onOpenChange={setIsAddProductOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button className="bg-brand-600 hover:bg-brand-700">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Product
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Product</DialogTitle>

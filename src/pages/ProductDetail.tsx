@@ -84,9 +84,7 @@ const ProductDetail = () => {
     }
   };
 
-  const selectedPriceData = product?.prices.find(
-    (p) => p.weight === selectedWeight,
-  );
+  const selectedPriceData = product?.prices.find((p) => p.weight === selectedWeight);
   const selectedPrice = selectedPriceData?.price || 0;
   const selectedStock = selectedPriceData?.stock_quantity || 0;
 
@@ -322,23 +320,15 @@ const ProductDetail = () => {
                       <span className="block text-xs text-gray-500">
                         ${price.price.toFixed(2)}
                       </span>
-                      <span
-                        className={cn(
-                          "block text-xs font-medium",
-                          isOutOfStock
-                            ? "text-red-500"
-                            : isLowStock
-                              ? "text-orange-500"
-                              : "text-green-600",
-                        )}
-                      >
+                      <span className={cn(
+                        "block text-xs font-medium",
+                        isOutOfStock ? "text-red-500" : isLowStock ? "text-orange-500" : "text-green-600"
+                      )}>
                         {isOutOfStock ? "Out of Stock" : `${stockLevel} left`}
                       </span>
                       {isOutOfStock && (
                         <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center">
-                          <span className="text-xs font-medium text-red-600">
-                            N/A
-                          </span>
+                          <span className="text-xs font-medium text-red-600">N/A</span>
                         </div>
                       )}
                     </button>
@@ -387,18 +377,18 @@ const ProductDetail = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
+                  onClick={() => setQuantity(Math.min(selectedStock, quantity + 1))}
+                  disabled={quantity >= selectedStock}
                   className="h-8 w-8 sm:h-10 sm:w-10 p-0"
                 >
-                  <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
-                <span className="w-12 text-center font-medium text-sm sm:text-base">
-                  {quantity}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
+              </div>
+              {quantity >= selectedStock && selectedStock > 0 && (
+                <p className="text-xs text-orange-600">
+                  Maximum available quantity selected for {selectedWeight}
+                </p>
+              )}
                   onClick={() =>
                     setQuantity(
                       Math.min(product.stock_quantity || 0, quantity + 1),

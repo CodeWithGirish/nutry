@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const Contact = () => {
   const { isAdmin } = useAuth();
@@ -118,15 +119,46 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Save contact message to database
+      const { error } = await supabase.from("contact_messages").insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        subject: formData.subject,
+        category: formData.category,
+        message: formData.message,
+        status: "unread",
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setSubmitted(true);
-      setLoading(false);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        category: "",
+        message: "",
+      });
+
       toast({
         title: "Message sent!",
         description: "We'll get back to you within 24 hours.",
       });
-    }, 2000);
+    } catch (error: any) {
+      console.error("Error saving contact message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {

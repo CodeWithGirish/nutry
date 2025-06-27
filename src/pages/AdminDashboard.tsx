@@ -91,6 +91,7 @@ import {
 } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import StockManager from "@/components/admin/StockManager";
+import BulkStockManager from "@/components/admin/BulkStockManager";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

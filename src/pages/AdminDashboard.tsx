@@ -306,12 +306,26 @@ const AdminDashboard = () => {
         .limit(1);
 
       if (testError) {
-        console.warn("Database connectivity test failed:", testError);
+        console.warn("Database connectivity test failed:", {
+          message: testError.message,
+          code: testError.code,
+          details: testError.details,
+        });
         useFallbackData();
         setDataLoaded(false);
+
+        let errorDescription = "Using demo data. ";
+        if (testError.code === "PGRST116") {
+          errorDescription += "Database tables may not be set up yet.";
+        } else if (testError.message?.includes("Failed to fetch")) {
+          errorDescription += "Network connection issue.";
+        } else {
+          errorDescription += "Database may not be configured properly.";
+        }
+
         toast({
           title: "Database Unavailable",
-          description: "Using demo data. Database may not be set up yet.",
+          description: errorDescription,
           variant: "destructive",
         });
         return;

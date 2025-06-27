@@ -800,6 +800,19 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Validate price variants
+    const hasEmptyWeights = newProduct.prices.some(
+      (price) => !price.weight || price.weight.trim() === "",
+    );
+    if (hasEmptyWeights) {
+      toast({
+        title: "Error",
+        description: "Please fill in all weight variants",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProductLoading(true);
 
     try {

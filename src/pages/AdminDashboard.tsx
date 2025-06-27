@@ -604,6 +604,46 @@ const AdminDashboard = () => {
     return orders.filter((order) => order.payment_method === "cod");
   };
 
+  const handleUpdatePaymentStatus = async (
+    orderId: string,
+    paymentStatus: "paid" | "pending",
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          payment_status: paymentStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? { ...order, payment_status: paymentStatus }
+            : order,
+        ),
+      );
+
+      toast({
+        title: "Payment status updated",
+        description: `Order payment marked as ${paymentStatus}`,
+      });
+    } catch (error: any) {
+      console.error("Error updating payment status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update payment status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getDateRange = (range: string) => {
     const now = new Date();
     const startDate = new Date();

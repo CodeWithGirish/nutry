@@ -53,12 +53,14 @@ export default function StockManager({
   React.useEffect(() => {
     if (isOpen) {
       // Initialize adjustments when dialog opens
-      const initialAdjustments = parsePrices(product.prices).map((price) => ({
-        weight: price.weight,
-        currentStock: price.stock_quantity || 0,
-        adjustment: 0,
-        adjustmentType: "add" as const,
-      }));
+      const initialAdjustments = parsePrices(product.prices)
+        .filter((price) => price.weight && price.weight.trim() !== "")
+        .map((price) => ({
+          weight: price.weight,
+          currentStock: price.stock_quantity || 0,
+          adjustment: 0,
+          adjustmentType: "add" as const,
+        }));
       setAdjustments(initialAdjustments);
     }
   }, [isOpen, product.prices]);

@@ -112,9 +112,7 @@ const ProductDetail = () => {
 
     setAddingToCart(true);
     try {
-      for (let i = 0; i < quantity; i++) {
-        await addToCart(product.id, selectedWeight, selectedPrice);
-      }
+      await addToCart(product.id, selectedWeight, selectedPrice, quantity);
     } catch (error: any) {
       console.error("Error adding to cart:", error.message || error);
     } finally {

@@ -299,7 +299,9 @@ export default function BulkStockManager({
   const weights = Array.from(
     new Set(
       products.flatMap((p) =>
-        parsePrices(p.prices).map((price) => price.weight),
+        parsePrices(p.prices)
+          .map((price) => price.weight)
+          .filter((weight) => weight && weight.trim() !== ""),
       ),
     ),
   );

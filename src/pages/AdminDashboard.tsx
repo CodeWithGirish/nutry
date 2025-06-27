@@ -1894,6 +1894,10 @@ const AdminDashboard = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
+                              <StockManager
+                                product={product}
+                                onStockUpdate={() => fetchProducts()}
+                              />
                               <Button
                                 variant="outline"
                                 size="sm"

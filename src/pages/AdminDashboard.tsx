@@ -1434,6 +1434,14 @@ const AdminDashboard = () => {
                         Add Product
                       </Button>
                     </DialogTrigger>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Dialog
+                  open={isAddProductOpen}
+                  onOpenChange={setIsAddProductOpen}
+                >
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Product</DialogTitle>

@@ -802,10 +802,21 @@ const AdminDashboard = () => {
     setProductLoading(true);
 
     try {
+      // Calculate total stock and in_stock status based on variants
+      const totalStock = newProduct.prices.reduce(
+        (sum, price) => sum + (price.stock_quantity || 0),
+        0,
+      );
+      const isInStock = newProduct.prices.some(
+        (price) => (price.stock_quantity || 0) > 0,
+      );
+
       const productData = {
         ...newProduct,
         images: newProduct.images,
         features: newProduct.features.filter((f) => f.trim()),
+        stock_quantity: totalStock,
+        in_stock: isInStock,
       };
 
       const { data, error } = await supabase
@@ -852,9 +863,24 @@ const AdminDashboard = () => {
     if (!editingProduct) return;
 
     try {
+      // Calculate total stock and in_stock status based on variants
+      const totalStock = editingProduct.prices.reduce(
+        (sum, price) => sum + (price.stock_quantity || 0),
+        0,
+      );
+      const isInStock = editingProduct.prices.some(
+        (price) => (price.stock_quantity || 0) > 0,
+      );
+
+      const updatedProduct = {
+        ...editingProduct,
+        stock_quantity: totalStock,
+        in_stock: isInStock,
+      };
+
       const { data, error } = await supabase
         .from("products")
-        .update(editingProduct)
+        .update(updatedProduct)
         .eq("id", editingProduct.id)
         .select()
         .single();

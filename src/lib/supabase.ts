@@ -52,11 +52,12 @@ export interface Product {
   category: string;
   image_url: string;
   images: string[];
-  prices: { weight: string; price: number }[];
+  prices: { weight: string; price: number; stock_quantity: number }[];
   original_price?: number;
   rating: number;
   review_count: number;
   in_stock: boolean;
+  stock_quantity: number;
   is_organic: boolean;
   created_at: string;
   updated_at: string;

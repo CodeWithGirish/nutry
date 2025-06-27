@@ -84,8 +84,11 @@ const ProductDetail = () => {
     }
   };
 
-  const selectedPrice =
-    product?.prices.find((p) => p.weight === selectedWeight)?.price || 0;
+  const selectedPriceData = product?.prices.find(
+    (p) => p.weight === selectedWeight,
+  );
+  const selectedPrice = selectedPriceData?.price || 0;
+  const selectedStock = selectedPriceData?.stock_quantity || 0;
 
   const discountPercentage =
     product?.original_price && selectedPrice
@@ -112,9 +115,7 @@ const ProductDetail = () => {
 
     setAddingToCart(true);
     try {
-      for (let i = 0; i < quantity; i++) {
-        await addToCart(product.id, selectedWeight, selectedPrice);
-      }
+      await addToCart(product.id, selectedWeight, selectedPrice, quantity);
     } catch (error: any) {
       console.error("Error adding to cart:", error.message || error);
     } finally {
@@ -228,10 +229,16 @@ const ProductDetail = () => {
                     Organic
                   </Badge>
                 )}
-                {!product.in_stock && (
+                {!product.in_stock || (product.stock_quantity || 0) === 0 ? (
                   <Badge className="bg-red-100 text-red-700 text-xs sm:text-sm">
                     Out of Stock
                   </Badge>
+                ) : (
+                  (product.stock_quantity || 0) <= 10 && (
+                    <Badge className="bg-orange-100 text-orange-700 text-xs sm:text-sm">
+                      Low Stock
+                    </Badge>
+                  )
                 )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -292,24 +299,83 @@ const ProductDetail = () => {
                 Select Weight:
               </h3>
               <div className="flex gap-2 sm:gap-3 flex-wrap">
-                {product.prices.map((price) => (
-                  <button
-                    key={price.weight}
-                    onClick={() => setSelectedWeight(price.weight)}
-                    className={cn(
-                      "px-3 sm:px-4 py-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors",
-                      selectedWeight === price.weight
-                        ? "border-brand-500 bg-brand-50 text-brand-700"
-                        : "border-gray-300 hover:border-gray-400",
-                    )}
-                  >
-                    {price.weight}
-                    <span className="block text-xs text-gray-500">
-                      ${price.price.toFixed(2)}
-                    </span>
-                  </button>
-                ))}
+                {product.prices.map((price) => {
+                  const stockLevel = price.stock_quantity || 0;
+                  const isOutOfStock = stockLevel === 0;
+                  const isLowStock = stockLevel > 0 && stockLevel <= 10;
+
+                  return (
+                    <button
+                      key={price.weight}
+                      onClick={() => setSelectedWeight(price.weight)}
+                      disabled={isOutOfStock}
+                      className={cn(
+                        "px-3 sm:px-4 py-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors relative",
+                        selectedWeight === price.weight
+                          ? "border-brand-500 bg-brand-50 text-brand-700"
+                          : isOutOfStock
+                            ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                            : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      {price.weight}
+                      <span className="block text-xs text-gray-500">
+                        ${price.price.toFixed(2)}
+                      </span>
+                      <span
+                        className={cn(
+                          "block text-xs font-medium",
+                          isOutOfStock
+                            ? "text-red-500"
+                            : isLowStock
+                              ? "text-orange-500"
+                              : "text-green-600",
+                        )}
+                      >
+                        {isOutOfStock ? "Out of Stock" : `${stockLevel} left`}
+                      </span>
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center">
+                          <span className="text-xs font-medium text-red-600">
+                            N/A
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Stock Information */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Stock for {selectedWeight}:
+                </span>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    selectedStock > 10
+                      ? "text-green-600"
+                      : selectedStock > 0
+                        ? "text-orange-600"
+                        : "text-red-600",
+                  )}
+                >
+                  {selectedStock} items available
+                </span>
+              </div>
+              {selectedStock <= 10 && selectedStock > 0 && (
+                <p className="text-xs text-orange-600">
+                  Limited stock! Only {selectedStock} left for {selectedWeight}
+                </p>
+              )}
+              {selectedStock === 0 && (
+                <p className="text-xs text-red-600">
+                  {selectedWeight} is currently out of stock
+                </p>
+              )}
             </div>
 
             {/* Quantity */}
@@ -333,12 +399,20 @@ const ProductDetail = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() =>
+                    setQuantity(Math.min(selectedStock, quantity + 1))
+                  }
+                  disabled={quantity >= selectedStock}
                   className="h-8 w-8 sm:h-10 sm:w-10 p-0"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
+              {quantity >= selectedStock && selectedStock > 0 && (
+                <p className="text-xs text-orange-600">
+                  Maximum available quantity selected for {selectedWeight}
+                </p>
+              )}
             </div>
 
             {/* Action Buttons */}
@@ -347,7 +421,9 @@ const ProductDetail = () => {
                 <Button
                   onClick={handleAddToCart}
                   className="flex-1 bg-brand-600 hover:bg-brand-700 text-sm sm:text-base py-2 sm:py-3"
-                  disabled={!product.in_stock || addingToCart}
+                  disabled={
+                    !product.in_stock || selectedStock === 0 || addingToCart
+                  }
                 >
                   {addingToCart ? (
                     <>
@@ -359,10 +435,12 @@ const ProductDetail = () => {
                     <>
                       <ShoppingCart className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="hidden sm:inline">
-                        {product.in_stock ? "Add to Cart" : "Notify Me"}
+                        {product.in_stock && selectedStock > 0
+                          ? "Add to Cart"
+                          : "Out of Stock"}
                       </span>
                       <span className="sm:hidden">
-                        {product.in_stock ? "Add" : "Notify"}
+                        {product.in_stock && selectedStock > 0 ? "Add" : "Out"}
                       </span>
                     </>
                   )}
@@ -382,7 +460,7 @@ const ProductDetail = () => {
                 </Button>
               </div>
 
-              {product.in_stock && (
+              {product.in_stock && selectedStock > 0 && (
                 <Button
                   onClick={handleBuyNow}
                   variant="outline"

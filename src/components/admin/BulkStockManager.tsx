@@ -495,11 +495,13 @@ export default function BulkStockManager({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Variants</SelectItem>
-                    {weights.map((weight) => (
-                      <SelectItem key={weight} value={weight}>
-                        {weight}
-                      </SelectItem>
-                    ))}
+                    {weights
+                      .filter((weight) => weight && weight.trim() !== "")
+                      .map((weight) => (
+                        <SelectItem key={weight} value={weight}>
+                          {weight}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

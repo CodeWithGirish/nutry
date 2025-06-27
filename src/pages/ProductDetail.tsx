@@ -422,9 +422,7 @@ const ProductDetail = () => {
                   onClick={handleAddToCart}
                   className="flex-1 bg-brand-600 hover:bg-brand-700 text-sm sm:text-base py-2 sm:py-3"
                   disabled={
-                    !product.in_stock ||
-                    (product.stock_quantity || 0) === 0 ||
-                    addingToCart
+                    !product.in_stock || selectedStock === 0 || addingToCart
                   }
                 >
                   {addingToCart ? (

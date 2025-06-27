@@ -2524,6 +2524,232 @@ const AdminDashboard = () => {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
+            {/* Contact Messages */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Contact Messages
+                  {contactMessages.filter((msg) => msg.status === "unread")
+                    .length > 0 && (
+                    <Badge className="bg-red-100 text-red-700">
+                      {
+                        contactMessages.filter((msg) => msg.status === "unread")
+                          .length
+                      }{" "}
+                      new
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {contactMessages.slice(0, 10).map((message) => (
+                        <TableRow
+                          key={message.id}
+                          className={
+                            message.status === "unread" ? "bg-blue-50" : ""
+                          }
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {message.status === "unread" && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              )}
+                              <div>
+                                <p className="font-medium">{message.name}</p>
+                                {message.phone && (
+                                  <p className="text-sm text-gray-500">
+                                    {message.phone}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{message.email}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{message.subject}</p>
+                              <p className="text-sm text-gray-500 truncate max-w-xs">
+                                {message.message.substring(0, 60)}...
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {message.category || "General"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                message.status === "unread"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : message.status === "read"
+                                    ? "bg-gray-100 text-gray-700"
+                                    : "bg-green-100 text-green-700"
+                              }
+                            >
+                              {message.status.charAt(0).toUpperCase() +
+                                message.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(message.created_at)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (message.status === "unread") {
+                                        markMessageAsRead(message.id);
+                                      }
+                                    }}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>
+                                      Contact Message Details
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label className="text-sm font-medium">
+                                          Name
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.name}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">
+                                          Email
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.email}
+                                        </p>
+                                      </div>
+                                      {message.phone && (
+                                        <div>
+                                          <Label className="text-sm font-medium">
+                                            Phone
+                                          </Label>
+                                          <p className="text-sm">
+                                            {message.phone}
+                                          </p>
+                                        </div>
+                                      )}
+                                      <div>
+                                        <Label className="text-sm font-medium">
+                                          Category
+                                        </Label>
+                                        <p className="text-sm">
+                                          {message.category}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium">
+                                        Subject
+                                      </Label>
+                                      <p className="text-sm">
+                                        {message.subject}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium">
+                                        Message
+                                      </Label>
+                                      <div className="bg-gray-50 p-3 rounded-lg">
+                                        <p className="text-sm whitespace-pre-wrap">
+                                          {message.message}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                                      <div>
+                                        <span className="font-medium">
+                                          Received:
+                                        </span>{" "}
+                                        {formatDate(message.created_at)}
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">
+                                          Status:
+                                        </span>{" "}
+                                        {message.status}
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2 pt-4">
+                                      <Button
+                                        onClick={() =>
+                                          window.open(
+                                            `mailto:${message.email}?subject=Re: ${message.subject}`,
+                                            "_blank",
+                                          )
+                                        }
+                                        className="flex-1"
+                                      >
+                                        <Mail className="h-4 w-4 mr-2" />
+                                        Reply via Email
+                                      </Button>
+                                      {message.phone && (
+                                        <Button
+                                          variant="outline"
+                                          onClick={() =>
+                                            window.open(
+                                              `tel:${message.phone}`,
+                                              "_blank",
+                                            )
+                                          }
+                                        >
+                                          <Phone className="h-4 w-4 mr-2" />
+                                          Call
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {contactMessages.length > 10 && (
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-gray-500">
+                      Showing 10 of {contactMessages.length} contact messages
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>User Management</CardTitle>

@@ -1435,334 +1435,338 @@ const AdminDashboard = () => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Add New Product</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
+                      <DialogHeader>
+                        <DialogTitle>Add New Product</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="name">Product Name *</Label>
+                            <Input
+                              id="name"
+                              value={newProduct.name}
+                              onChange={(e) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  name: e.target.value,
+                                })
+                              }
+                              placeholder="Premium Almonds"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="category">Category *</Label>
+                            <Select
+                              value={newProduct.category}
+                              onValueChange={(value) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  category: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Nuts">Nuts</SelectItem>
+                                <SelectItem value="Dried Fruits">
+                                  Dried Fruits
+                                </SelectItem>
+                                <SelectItem value="Seeds">Seeds</SelectItem>
+                                <SelectItem value="Trail Mix">
+                                  Trail Mix
+                                </SelectItem>
+                                <SelectItem value="Dates">Dates</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
                         <div>
-                          <Label htmlFor="name">Product Name *</Label>
-                          <Input
-                            id="name"
-                            value={newProduct.name}
+                          <Label htmlFor="description">Description *</Label>
+                          <Textarea
+                            id="description"
+                            value={newProduct.description}
                             onChange={(e) =>
                               setNewProduct({
                                 ...newProduct,
-                                name: e.target.value,
+                                description: e.target.value,
                               })
                             }
-                            placeholder="Premium Almonds"
+                            placeholder="Describe your product..."
+                            rows={3}
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="category">Category *</Label>
-                          <Select
-                            value={newProduct.category}
-                            onValueChange={(value) =>
-                              setNewProduct({
-                                ...newProduct,
-                                category: value,
-                              })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Nuts">Nuts</SelectItem>
-                              <SelectItem value="Dried Fruits">
-                                Dried Fruits
-                              </SelectItem>
-                              <SelectItem value="Seeds">Seeds</SelectItem>
-                              <SelectItem value="Trail Mix">
-                                Trail Mix
-                              </SelectItem>
-                              <SelectItem value="Dates">Dates</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
 
-                      <div>
-                        <Label htmlFor="description">Description *</Label>
-                        <Textarea
-                          id="description"
-                          value={newProduct.description}
-                          onChange={(e) =>
+                        {/* Image Upload */}
+                        <MultiImageUpload
+                          onImagesChange={(images) =>
                             setNewProduct({
                               ...newProduct,
-                              description: e.target.value,
+                              images,
+                              image_url: images[0] || "🥜",
                             })
                           }
-                          placeholder="Describe your product..."
-                          rows={3}
+                          existingImages={newProduct.images}
+                          maxImages={10}
+                          showPrimaryBadge={true}
                         />
-                      </div>
 
-                      {/* Image Upload */}
-                      <MultiImageUpload
-                        onImagesChange={(images) =>
-                          setNewProduct({
-                            ...newProduct,
-                            images,
-                            image_url: images[0] || "🥜",
-                          })
-                        }
-                        existingImages={newProduct.images}
-                        maxImages={10}
-                        showPrimaryBadge={true}
-                      />
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <Label htmlFor="stockQuantity">
-                            Stock Quantity *
-                          </Label>
-                          <Input
-                            id="stockQuantity"
-                            type="number"
-                            min="0"
-                            value={newProduct.stock_quantity}
-                            onChange={(e) =>
-                              setNewProduct({
-                                ...newProduct,
-                                stock_quantity: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            placeholder="100"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="originalPrice">
-                            Original Price (Optional)
-                          </Label>
-                          <Input
-                            id="originalPrice"
-                            type="number"
-                            step="0.01"
-                            value={newProduct.original_price || ""}
-                            onChange={(e) =>
-                              setNewProduct({
-                                ...newProduct,
-                                original_price: e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : null,
-                              })
-                            }
-                            placeholder="29.99"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Price Variants */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label>Price Variants *</Label>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addPriceVariant("new")}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add Variant
-                          </Button>
-                        </div>
-                        {newProduct.prices.map((price, index) => (
-                          <div key={index} className="space-y-2">
-                            <div className="flex gap-2 items-center">
-                              <div className="flex-1">
-                                <Input
-                                  placeholder="250g"
-                                  value={price.weight}
-                                  onChange={(e) =>
-                                    updatePriceVariant(
-                                      index,
-                                      "weight",
-                                      e.target.value,
-                                      "new",
-                                    )
-                                  }
-                                />
-                                <Label className="text-xs text-gray-500 mt-1">
-                                  Weight
-                                </Label>
-                              </div>
-                              <div className="flex-1">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="24.99"
-                                  value={price.price || ""}
-                                  onChange={(e) =>
-                                    updatePriceVariant(
-                                      index,
-                                      "price",
-                                      parseFloat(e.target.value) || 0,
-                                      "new",
-                                    )
-                                  }
-                                />
-                                <Label className="text-xs text-gray-500 mt-1">
-                                  Price ($)
-                                </Label>
-                              </div>
-                              <div className="flex-1">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  placeholder="100"
-                                  value={price.stock_quantity || ""}
-                                  onChange={(e) =>
-                                    updatePriceVariant(
-                                      index,
-                                      "stock_quantity",
-                                      parseInt(e.target.value) || 0,
-                                      "new",
-                                    )
-                                  }
-                                />
-                                <Label className="text-xs text-gray-500 mt-1">
-                                  Stock Qty
-                                </Label>
-                              </div>
-                              {newProduct.prices.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    removePriceVariant(index, "new")
-                                  }
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                            {(price.stock_quantity || 0) < 10 &&
-                              (price.stock_quantity || 0) > 0 && (
-                                <div className="flex items-center gap-1 text-amber-600 text-xs">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  Low stock warning
-                                </div>
-                              )}
-                            {(price.stock_quantity || 0) === 0 && (
-                              <div className="flex items-center gap-1 text-red-600 text-xs">
-                                <XCircle className="h-3 w-3" />
-                                Out of stock
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Features */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label>Product Features</Label>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addFeature("new")}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add Feature
-                          </Button>
-                        </div>
-                        {newProduct.features.map((feature, index) => (
-                          <div key={index} className="flex gap-2 items-center">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="stockQuantity">
+                              Stock Quantity *
+                            </Label>
                             <Input
-                              placeholder="e.g., Organic certified"
-                              value={feature}
+                              id="stockQuantity"
+                              type="number"
+                              min="0"
+                              value={newProduct.stock_quantity}
                               onChange={(e) =>
-                                updateFeature(index, e.target.value, "new")
+                                setNewProduct({
+                                  ...newProduct,
+                                  stock_quantity: parseInt(e.target.value) || 0,
+                                })
                               }
-                              className="flex-1"
+                              placeholder="100"
                             />
+                          </div>
+                          <div>
+                            <Label htmlFor="originalPrice">
+                              Original Price (Optional)
+                            </Label>
+                            <Input
+                              id="originalPrice"
+                              type="number"
+                              step="0.01"
+                              value={newProduct.original_price || ""}
+                              onChange={(e) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  original_price: e.target.value
+                                    ? parseFloat(e.target.value)
+                                    : null,
+                                })
+                              }
+                              placeholder="29.99"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Price Variants */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label>Price Variants *</Label>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => removeFeature(index, "new")}
+                              onClick={() => addPriceVariant("new")}
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Variant
                             </Button>
                           </div>
-                        ))}
-                      </div>
+                          {newProduct.prices.map((price, index) => (
+                            <div key={index} className="space-y-2">
+                              <div className="flex gap-2 items-center">
+                                <div className="flex-1">
+                                  <Input
+                                    placeholder="250g"
+                                    value={price.weight}
+                                    onChange={(e) =>
+                                      updatePriceVariant(
+                                        index,
+                                        "weight",
+                                        e.target.value,
+                                        "new",
+                                      )
+                                    }
+                                  />
+                                  <Label className="text-xs text-gray-500 mt-1">
+                                    Weight
+                                  </Label>
+                                </div>
+                                <div className="flex-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="24.99"
+                                    value={price.price || ""}
+                                    onChange={(e) =>
+                                      updatePriceVariant(
+                                        index,
+                                        "price",
+                                        parseFloat(e.target.value) || 0,
+                                        "new",
+                                      )
+                                    }
+                                  />
+                                  <Label className="text-xs text-gray-500 mt-1">
+                                    Price ($)
+                                  </Label>
+                                </div>
+                                <div className="flex-1">
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    placeholder="100"
+                                    value={price.stock_quantity || ""}
+                                    onChange={(e) =>
+                                      updatePriceVariant(
+                                        index,
+                                        "stock_quantity",
+                                        parseInt(e.target.value) || 0,
+                                        "new",
+                                      )
+                                    }
+                                  />
+                                  <Label className="text-xs text-gray-500 mt-1">
+                                    Stock Qty
+                                  </Label>
+                                </div>
+                                {newProduct.prices.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      removePriceVariant(index, "new")
+                                    }
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                              {(price.stock_quantity || 0) < 10 &&
+                                (price.stock_quantity || 0) > 0 && (
+                                  <div className="flex items-center gap-1 text-amber-600 text-xs">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Low stock warning
+                                  </div>
+                                )}
+                              {(price.stock_quantity || 0) === 0 && (
+                                <div className="flex items-center gap-1 text-red-600 text-xs">
+                                  <XCircle className="h-3 w-3" />
+                                  Out of stock
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
 
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="organic"
-                            checked={newProduct.is_organic}
-                            onCheckedChange={(checked) =>
-                              setNewProduct({
-                                ...newProduct,
-                                is_organic: !!checked,
-                              })
-                            }
-                          />
-                          <Label htmlFor="organic">Organic</Label>
+                        {/* Features */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label>Product Features</Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addFeature("new")}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Feature
+                            </Button>
+                          </div>
+                          {newProduct.features.map((feature, index) => (
+                            <div
+                              key={index}
+                              className="flex gap-2 items-center"
+                            >
+                              <Input
+                                placeholder="e.g., Organic certified"
+                                value={feature}
+                                onChange={(e) =>
+                                  updateFeature(index, e.target.value, "new")
+                                }
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeFeature(index, "new")}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="featured"
-                            checked={newProduct.is_featured}
-                            onCheckedChange={(checked) =>
-                              setNewProduct({
-                                ...newProduct,
-                                is_featured: !!checked,
-                              })
-                            }
-                          />
-                          <Label htmlFor="featured">Featured</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="inStock"
-                            checked={newProduct.in_stock}
-                            onCheckedChange={(checked) =>
-                              setNewProduct({
-                                ...newProduct,
-                                in_stock: !!checked,
-                              })
-                            }
-                          />
-                          <Label htmlFor="inStock">In Stock</Label>
-                        </div>
-                      </div>
 
-                      <div className="flex gap-2 pt-4">
-                        <Button
-                          onClick={handleAddProduct}
-                          className="bg-brand-600 hover:bg-brand-700"
-                          disabled={
-                            productLoading ||
-                            !newProduct.name ||
-                            !newProduct.description
-                          }
-                        >
-                          {productLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Adding...
-                            </>
-                          ) : (
-                            "Add Product"
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsAddProductOpen(false)}
-                        >
-                          Cancel
-                        </Button>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="organic"
+                              checked={newProduct.is_organic}
+                              onCheckedChange={(checked) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  is_organic: !!checked,
+                                })
+                              }
+                            />
+                            <Label htmlFor="organic">Organic</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="featured"
+                              checked={newProduct.is_featured}
+                              onCheckedChange={(checked) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  is_featured: !!checked,
+                                })
+                              }
+                            />
+                            <Label htmlFor="featured">Featured</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="inStock"
+                              checked={newProduct.in_stock}
+                              onCheckedChange={(checked) =>
+                                setNewProduct({
+                                  ...newProduct,
+                                  in_stock: !!checked,
+                                })
+                              }
+                            />
+                            <Label htmlFor="inStock">In Stock</Label>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-4">
+                          <Button
+                            onClick={handleAddProduct}
+                            className="bg-brand-600 hover:bg-brand-700"
+                            disabled={
+                              productLoading ||
+                              !newProduct.name ||
+                              !newProduct.description
+                            }
+                          >
+                            {productLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Adding...
+                              </>
+                            ) : (
+                              "Add Product"
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsAddProductOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 {/* Search */}

@@ -1032,7 +1032,7 @@ const AdminDashboard = () => {
         ...newProduct,
         prices: [
           ...newProduct.prices,
-          { weight: "", price: 0, stock_quantity: 0 },
+          { weight: "500g", price: 0, stock_quantity: 0 },
         ],
       });
     } else if (editingProduct) {
@@ -1040,7 +1040,7 @@ const AdminDashboard = () => {
         ...editingProduct,
         prices: [
           ...editingProduct.prices,
-          { weight: "", price: 0, stock_quantity: 0 },
+          { weight: "500g", price: 0, stock_quantity: 0 },
         ],
       });
     }

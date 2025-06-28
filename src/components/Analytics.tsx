@@ -218,8 +218,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
 
       const formattedData = (data || []).map((product) => ({
         name: product.name.substring(0, 20) + "...",
-        sales: Math.floor(Math.random() * 500) + 100,
-        revenue: Math.floor(Math.random() * 5000) + 1000,
+        sales: 0, // Real sales data would come from order_items table
+        revenue: 0, // Real revenue data would come from order_items table
         rating: product.rating,
         reviews: product.review_count,
       }));

@@ -377,6 +377,8 @@ const AdminDashboard = () => {
         ),
       ];
 
+      console.log("Fetching profiles for user IDs:", userIds);
+
       let profilesData: any[] = [];
 
       // Fetch user profiles if we have user IDs
@@ -389,8 +391,32 @@ const AdminDashboard = () => {
 
           if (profilesError) {
             console.warn("Could not fetch user profiles:", profilesError);
+            // Try to fetch from auth.users as fallback
+            try {
+              const { data: authUsers, error: authError } =
+                await supabase.auth.admin.listUsers();
+              if (!authError && authUsers?.users) {
+                profilesData = authUsers.users
+                  .filter((user) => userIds.includes(user.id))
+                  .map((user) => ({
+                    id: user.id,
+                    full_name:
+                      user.user_metadata?.full_name ||
+                      user.email?.split("@")[0] ||
+                      "User",
+                    email: user.email || "No email",
+                  }));
+                console.log(
+                  "Using auth.users as fallback:",
+                  profilesData.length,
+                );
+              }
+            } catch (authFallbackError) {
+              console.warn("Auth fallback also failed:", authFallbackError);
+            }
           } else {
             profilesData = profiles || [];
+            console.log("Profiles fetched successfully:", profilesData.length);
           }
         } catch (profileError: any) {
           console.warn("Error fetching profiles:", profileError);
@@ -406,14 +432,35 @@ const AdminDashboard = () => {
         {} as Record<string, any>,
       );
 
+      console.log(
+        "Profile map created:",
+        Object.keys(profileMap).length,
+        "profiles mapped",
+      );
+
       // Transform orders to include user info and ensure order_items is available
-      const transformedOrders = (ordersData || []).map((order) => ({
-        ...order,
-        user_name: profileMap[order.user_id]?.full_name || "Guest User",
-        user_email: profileMap[order.user_id]?.email || "guest@example.com",
-        // Ensure order_items is always an array
-        order_items: order.order_items || [],
-      }));
+      const transformedOrders = (ordersData || []).map((order) => {
+        const profile = profileMap[order.user_id];
+        const orderWithProfile = {
+          ...order,
+          user_name:
+            profile?.full_name ||
+            `User ${order.user_id?.substring(0, 8)}` ||
+            "Guest User",
+          user_email:
+            profile?.email ||
+            `user-${order.user_id?.substring(0, 8)}@unknown.com`,
+          // Ensure order_items is always an array
+          order_items: order.order_items || [],
+        };
+
+        // Log when profile is missing for debugging
+        if (!profile && order.user_id) {
+          console.warn(`No profile found for user_id: ${order.user_id}`);
+        }
+
+        return orderWithProfile;
+      });
 
       setOrders(transformedOrders);
       console.log("Orders fetched successfully:", transformedOrders.length);

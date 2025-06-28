@@ -242,23 +242,8 @@ const AdminDashboard = () => {
       },
     ]);
 
-    // Set demo users
-    setUsers([
-      {
-        id: "demo-user-1",
-        email: "john@example.com",
-        full_name: "John Doe",
-        role: "user",
-        created_at: new Date(Date.now() - 2592000000).toISOString(), // 30 days ago
-      },
-      {
-        id: "demo-user-2",
-        email: "jane@example.com",
-        full_name: "Jane Smith",
-        role: "user",
-        created_at: new Date(Date.now() - 1296000000).toISOString(), // 15 days ago
-      },
-    ]);
+    // Don't set demo users - only show real registered users from database
+    setUsers([]);
   };
 
   const fetchData = async () => {

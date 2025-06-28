@@ -149,21 +149,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setRevenueData(formattedData);
       console.log("Revenue data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo revenue data (database offline)");
-      // Use mock data as fallback
-      const mockData = Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(
-          Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        revenue: Math.floor(Math.random() * 2000) + 500,
-        orders: Math.floor(Math.random() * 50) + 10,
-        customers: Math.floor(Math.random() * 30) + 5,
-      }));
-      setRevenueData(mockData);
-      console.log("Using fallback revenue data");
+      console.error("Failed to fetch revenue data:", error);
+      setRevenueData([]);
     }
   };
 

@@ -277,48 +277,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setCategoryData(formattedData);
       console.log("Category data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo category data (database offline)");
-      // Use fallback category data
-      const colors = ["#e8914c", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
-      const fallbackData = [
-        {
-          name: "Nuts",
-          products: 8,
-          sales: 450,
-          revenue: 8500,
-          color: colors[0],
-        },
-        {
-          name: "Dried Fruits",
-          products: 6,
-          sales: 320,
-          revenue: 6200,
-          color: colors[1],
-        },
-        {
-          name: "Seeds",
-          products: 4,
-          sales: 280,
-          revenue: 4800,
-          color: colors[2],
-        },
-        {
-          name: "Trail Mix",
-          products: 3,
-          sales: 210,
-          revenue: 3900,
-          color: colors[3],
-        },
-        {
-          name: "Dates",
-          products: 4,
-          sales: 190,
-          revenue: 3200,
-          color: colors[4],
-        },
-      ];
-      setCategoryData(fallbackData);
-      console.log("Using fallback category data");
+      console.error("Failed to fetch category data:", error);
+      setCategoryData([]);
     }
   };
 

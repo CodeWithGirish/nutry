@@ -1285,6 +1285,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const sendOrderUpdate = async (order: Order) => {
+    try {
+      const emailResult = await sendOrderShippedEmail(
+        order.id,
+        order.user_email,
+        order,
+      );
+
+      if (emailResult.success) {
+        toast({
+          title: "Order update sent!",
+          description: `Order update email sent to ${order.user_email}`,
+        });
+      } else {
+        toast({
+          title: "Email unavailable",
+          description:
+            "Order update could not be sent - email service unavailable",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.warn("Email service error:", error);
+      toast({
+        title: "Email unavailable",
+        description: "Email service is currently unavailable",
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportOrdersToCSV = () => {
     const csvContent = [
       [

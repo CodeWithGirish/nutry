@@ -353,10 +353,20 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      // Fetch orders with order items using join
+      // Fetch orders with order items and user profiles using join
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select("*, order_items(*)")
+        .select(
+          `
+          *,
+          order_items(*),
+          profiles:user_id(
+            id,
+            full_name,
+            email
+          )
+        `,
+        )
         .order("created_at", { ascending: false });
 
       if (ordersError) {

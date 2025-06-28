@@ -30,7 +30,7 @@ export const createAdminClient = () => {
   return supabase;
 };
 
-// Test database connection
+// Test database connection with fallback
 export const testDatabaseConnection = async () => {
   try {
     console.log("Testing database connection...");
@@ -47,6 +47,7 @@ export const testDatabaseConnection = async () => {
         code: error.code,
         status: error.status,
       });
+      console.warn("Falling back to demo data mode");
       return false;
     }
 
@@ -54,7 +55,23 @@ export const testDatabaseConnection = async () => {
     return true;
   } catch (error) {
     console.error("Database connection test error:", error);
+    console.warn("Network error - falling back to demo data mode");
     return false;
+  }
+};
+
+// Create a wrapper for Supabase queries with error handling
+export const safeSupabaseQuery = async (queryFn: () => Promise<any>) => {
+  try {
+    const result = await queryFn();
+    if (result.error) {
+      console.error("Supabase query error:", result.error);
+      throw new Error(result.error.message);
+    }
+    return result;
+  } catch (error) {
+    console.error("Network or connection error:", error);
+    throw error;
   }
 };
 

@@ -126,35 +126,6 @@ const AdminLogin = () => {
             )}
 
             {/* Mock Login Options */}
-            <div className="space-y-3">
-              <div className="text-center">
-                <p className="text-slate-300 text-sm mb-3">
-                  Quick Login (Demo)
-                </p>
-              </div>
-              {DEMO_CREDENTIALS.map((cred) => (
-                <Button
-                  key={cred.email}
-                  variant="outline"
-                  className="w-full justify-start bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600"
-                  onClick={() => handleMockLogin(cred)}
-                  disabled={loading}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  <div className="text-left">
-                    <div className="font-medium">{cred.name}</div>
-                    <div className="text-xs text-slate-400">{cred.email}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-
-            <div className="relative">
-              <Separator className="bg-slate-600" />
-              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 px-2 text-sm text-slate-400">
-                Or enter manually
-              </span>
-            </div>
 
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>

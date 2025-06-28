@@ -155,16 +155,52 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
   };
 
   const fetchOrderData = async () => {
-    // Simulated order status data
-    const orderStatuses = [
-      { name: "Pending", value: 15, color: "#fbbf24" },
-      { name: "Confirmed", value: 25, color: "#3b82f6" },
-      { name: "Shipped", value: 35, color: "#8b5cf6" },
-      { name: "Delivered", value: 120, color: "#10b981" },
-      { name: "Cancelled", value: 5, color: "#ef4444" },
-    ];
+    try {
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select("status");
 
-    setOrderData(orderStatuses);
+      if (error) {
+        console.error("Failed to fetch order data:", error);
+        setOrderData([]);
+        return;
+      }
+
+      // Count orders by status
+      const statusCounts = (orders || []).reduce(
+        (acc, order) => {
+          acc[order.status] = (acc[order.status] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+      const orderStatuses = [
+        { name: "Pending", value: statusCounts.pending || 0, color: "#fbbf24" },
+        {
+          name: "Confirmed",
+          value: statusCounts.confirmed || 0,
+          color: "#3b82f6",
+        },
+        { name: "Shipped", value: statusCounts.shipped || 0, color: "#8b5cf6" },
+        {
+          name: "Delivered",
+          value: statusCounts.delivered || 0,
+          color: "#10b981",
+        },
+        {
+          name: "Cancelled",
+          value: statusCounts.cancelled || 0,
+          color: "#ef4444",
+        },
+      ];
+
+      setOrderData(orderStatuses);
+      console.log("Order status data fetched successfully");
+    } catch (error: any) {
+      console.error("Failed to fetch order data:", error);
+      setOrderData([]);
+    }
   };
 
   const fetchProductData = async () => {

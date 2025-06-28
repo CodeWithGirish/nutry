@@ -2592,7 +2592,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>COD Orders Management</CardTitle>
-                <Button onClick={exportOrdersToCSV} variant="outline">
+                <Button onClick={exportCodOrdersToCSV} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Export COD Orders
                 </Button>

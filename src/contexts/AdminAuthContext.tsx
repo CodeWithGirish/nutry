@@ -46,12 +46,6 @@ const ADMIN_CREDENTIALS = [
     name: "Super Admin",
     role: "super_admin" as const,
   },
-  {
-    email: "demo@nutrivault.com",
-    password: "Demo123!@#", // Strong password for demo
-    name: "Demo Admin",
-    role: "admin" as const,
-  },
 ];
 
 const SESSION_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours

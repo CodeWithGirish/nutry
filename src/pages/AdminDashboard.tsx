@@ -448,13 +448,18 @@ const AdminDashboard = () => {
         "profiles mapped",
       );
 
-      // Transform orders to include user info and ensure order_items is available
+      // Transform orders to include user info from joined profiles
       const transformedOrders = (ordersData || []).map((order) => {
-        const profile = profileMap[order.user_id];
+        // First try joined profile data, then fallback to profileMap, then defaults
+        const joinedProfile = order.profiles;
+        const mappedProfile = profileMap[order.user_id];
+        const profile = joinedProfile || mappedProfile;
+
         const orderWithProfile = {
           ...order,
           user_name:
             profile?.full_name ||
+            profile?.email?.split("@")[0] ||
             `User ${order.user_id?.substring(0, 8)}` ||
             "Guest User",
           user_email:
@@ -466,7 +471,11 @@ const AdminDashboard = () => {
 
         // Log when profile is missing for debugging
         if (!profile && order.user_id) {
-          console.warn(`No profile found for user_id: ${order.user_id}`);
+          console.warn(
+            `No profile found for user_id: ${order.user_id} in order ${order.id}`,
+          );
+        } else if (profile) {
+          console.log(`Order ${order.id}: Found profile for ${profile.email}`);
         }
 
         return orderWithProfile;

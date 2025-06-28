@@ -7,18 +7,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    proxy: {
-      "/supabase": {
-        target: "https://truzxbzzgmfrifiygmgr.supabase.co",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/supabase/, ""),
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey",
-        },
-      },
-    },
   },
   plugins: [react()],
   resolve: {

@@ -201,7 +201,6 @@ const AdminLogin = () => {
             </form>
 
             <div className="text-center text-sm text-slate-400 space-y-1">
-              <p>⚠️ Demo Credentials Available Above</p>
               <p className="text-xs">
                 All access attempts are logged and monitored
               </p>

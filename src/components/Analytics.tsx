@@ -187,10 +187,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .limit(10);
 
       if (error) {
-        console.error("Supabase error fetching product data:", error);
-        throw new Error(
-          `Failed to fetch product data: ${error.message || JSON.stringify(error)}`,
-        );
+        console.warn("Database unavailable, using demo product data");
+        throw new Error("Database connection failed");
       }
 
       const formattedData = (data || []).map((product) => ({

@@ -381,6 +381,16 @@ const AdminDashboard = () => {
         ordersData = fallbackOrdersData;
       }
 
+      console.log("Orders data fetched:", ordersData?.length || 0, "orders");
+      if (ordersData?.length > 0) {
+        console.log("First order sample:", {
+          id: ordersData[0].id,
+          user_id: ordersData[0].user_id,
+          has_profiles: !!ordersData[0].profiles,
+          profiles_data: ordersData[0].profiles,
+        });
+      }
+
       // Get unique user IDs from orders
       const userIds = [
         ...new Set(

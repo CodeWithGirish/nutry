@@ -168,9 +168,11 @@ const AdminDashboard = () => {
     }
   }, [timeRange]);
 
-  // Fallback demo data
-  const useFallbackData = () => {
-    console.log("Using fallback demo data");
+  // Fallback demo data for non-order components only
+  const useFallbackDataForNonOrders = () => {
+    console.log(
+      "Using fallback demo data for products, reviews, and users only",
+    );
 
     // Set demo products
     setProducts([
@@ -222,43 +224,8 @@ const AdminDashboard = () => {
       } as Product,
     ]);
 
-    // Set demo orders
-    setOrders([
-      {
-        id: "demo-order-1",
-        user_id: "demo-user-1",
-        status: "delivered",
-        payment_method: "stripe",
-        payment_status: "paid",
-        total_amount: 2599,
-        shipping_address: { name: "John Doe", phone: "+1-555-0123" },
-        is_gift: false,
-        order_items: [
-          { id: "demo-item-1", product_name: "Premium Almonds", quantity: 2 },
-        ],
-        user_name: "John Doe",
-        user_email: "john@example.com",
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        updated_at: new Date().toISOString(),
-      } as Order & { user_name: string; user_email: string },
-      {
-        id: "demo-order-2",
-        user_id: "demo-user-2",
-        status: "pending",
-        payment_method: "cod",
-        payment_status: "pending",
-        total_amount: 1899,
-        shipping_address: { name: "Jane Smith", phone: "+1-555-0124" },
-        is_gift: true,
-        order_items: [
-          { id: "demo-item-2", product_name: "Organic Dates", quantity: 1 },
-        ],
-        user_name: "Jane Smith",
-        user_email: "jane@example.com",
-        created_at: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
-        updated_at: new Date().toISOString(),
-      } as Order & { user_name: string; user_email: string },
-    ]);
+    // Keep orders empty - orders must be dynamic from database only
+    setOrders([]);
 
     // Set demo reviews
     setReviews([

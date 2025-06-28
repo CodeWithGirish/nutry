@@ -448,38 +448,34 @@ const AdminDashboard = () => {
         "profiles mapped",
       );
 
-      // Transform orders to include user info from joined profiles
-      const transformedOrders = (ordersData || []).map((order) => {
-        // First try joined profile data, then fallback to profileMap, then defaults
-        const joinedProfile = order.profiles;
-        const mappedProfile = profileMap[order.user_id];
-        const profile = joinedProfile || mappedProfile;
+      // Transform orders to include user info from joined profiles - only show real users
+      const transformedOrders = (ordersData || [])
+        .map((order) => {
+          // First try joined profile data, then fallback to profileMap
+          const joinedProfile = order.profiles;
+          const mappedProfile = profileMap[order.user_id];
+          const profile = joinedProfile || mappedProfile;
 
-        const orderWithProfile = {
-          ...order,
-          user_name:
-            profile?.full_name ||
-            profile?.email?.split("@")[0] ||
-            `User ${order.user_id?.substring(0, 8)}` ||
-            "Guest User",
-          user_email:
-            profile?.email ||
-            `user-${order.user_id?.substring(0, 8)}@unknown.com`,
-          // Ensure order_items is always an array
-          order_items: order.order_items || [],
-        };
+          // Only include orders with real user profiles
+          if (!profile || !profile.email) {
+            console.warn(
+              `Skipping order ${order.id}: No real user profile found for user_id: ${order.user_id}`,
+            );
+            return null; // This will be filtered out
+          }
 
-        // Log when profile is missing for debugging
-        if (!profile && order.user_id) {
-          console.warn(
-            `No profile found for user_id: ${order.user_id} in order ${order.id}`,
-          );
-        } else if (profile) {
-          console.log(`Order ${order.id}: Found profile for ${profile.email}`);
-        }
+          const orderWithProfile = {
+            ...order,
+            user_name: profile.full_name || profile.email.split("@")[0],
+            user_email: profile.email,
+            // Ensure order_items is always an array
+            order_items: order.order_items || [],
+          };
 
-        return orderWithProfile;
-      });
+          console.log(`Order ${order.id}: Real user ${profile.email} found`);
+          return orderWithProfile;
+        })
+        .filter(Boolean); // Remove null entries (orders without real user profiles)
 
       setOrders(transformedOrders);
       console.log("Orders fetched successfully:", transformedOrders.length);

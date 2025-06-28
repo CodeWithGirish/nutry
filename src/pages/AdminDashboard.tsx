@@ -1030,8 +1030,7 @@ const AdminDashboard = () => {
       });
       toast({
         title: "Statistics Load Error",
-        description:
-          "Using demo statistics. Database connection may be limited.",
+        description: "Could not load statistics from database.",
         variant: "destructive",
       });
     }

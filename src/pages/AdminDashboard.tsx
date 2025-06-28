@@ -428,6 +428,13 @@ const AdminDashboard = () => {
         const mappedProfile = profileMap[order.user_id];
         const profile = joinedProfile || mappedProfile;
 
+        console.log(`Processing order ${order.id}:`, {
+          user_id: order.user_id,
+          joinedProfile,
+          mappedProfile,
+          finalProfile: profile,
+        });
+
         let user_name, user_email;
 
         if (profile) {

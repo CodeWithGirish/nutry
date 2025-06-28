@@ -312,10 +312,10 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       const totalRevenue =
         !ordersError && orders
           ? orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-          : 15420; // Fallback value
+          : 0;
 
-      const totalOrders = !ordersError && orders ? orders.length : 89; // Fallback value
-      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 173; // Fallback value
+      const totalOrders = !ordersError && orders ? orders.length : 0;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
       // Use actual customer count
       const actualCustomerCount = !customerError ? customerCount || 0 : 0;

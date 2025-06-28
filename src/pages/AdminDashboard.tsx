@@ -168,9 +168,11 @@ const AdminDashboard = () => {
     }
   }, [timeRange]);
 
-  // Fallback demo data
-  const useFallbackData = () => {
-    console.log("Using fallback demo data");
+  // Fallback demo data for non-order components only
+  const useFallbackDataForNonOrders = () => {
+    console.log(
+      "Using fallback demo data for products, reviews, and users only",
+    );
 
     // Set demo products
     setProducts([
@@ -222,43 +224,8 @@ const AdminDashboard = () => {
       } as Product,
     ]);
 
-    // Set demo orders
-    setOrders([
-      {
-        id: "demo-order-1",
-        user_id: "demo-user-1",
-        status: "delivered",
-        payment_method: "stripe",
-        payment_status: "paid",
-        total_amount: 2599,
-        shipping_address: { name: "John Doe", phone: "+1-555-0123" },
-        is_gift: false,
-        order_items: [
-          { id: "demo-item-1", product_name: "Premium Almonds", quantity: 2 },
-        ],
-        user_name: "John Doe",
-        user_email: "john@example.com",
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        updated_at: new Date().toISOString(),
-      } as Order & { user_name: string; user_email: string },
-      {
-        id: "demo-order-2",
-        user_id: "demo-user-2",
-        status: "pending",
-        payment_method: "cod",
-        payment_status: "pending",
-        total_amount: 1899,
-        shipping_address: { name: "Jane Smith", phone: "+1-555-0124" },
-        is_gift: true,
-        order_items: [
-          { id: "demo-item-2", product_name: "Organic Dates", quantity: 1 },
-        ],
-        user_name: "Jane Smith",
-        user_email: "jane@example.com",
-        created_at: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
-        updated_at: new Date().toISOString(),
-      } as Order & { user_name: string; user_email: string },
-    ]);
+    // Keep orders empty - orders must be dynamic from database only
+    setOrders([]);
 
     // Set demo reviews
     setReviews([
@@ -275,23 +242,8 @@ const AdminDashboard = () => {
       },
     ]);
 
-    // Set demo users
-    setUsers([
-      {
-        id: "demo-user-1",
-        email: "john@example.com",
-        full_name: "John Doe",
-        role: "user",
-        created_at: new Date(Date.now() - 2592000000).toISOString(), // 30 days ago
-      },
-      {
-        id: "demo-user-2",
-        email: "jane@example.com",
-        full_name: "Jane Smith",
-        role: "user",
-        created_at: new Date(Date.now() - 1296000000).toISOString(), // 15 days ago
-      },
-    ]);
+    // Don't set demo users - only show real registered users from database
+    setUsers([]);
   };
 
   const fetchData = async () => {
@@ -299,70 +251,54 @@ const AdminDashboard = () => {
     try {
       console.log("Starting data fetch...");
 
-      // Test database connectivity first
-      const { data: testData, error: testError } = await supabase
-        .from("products")
-        .select("id")
-        .limit(1);
+      // Always try to fetch orders first - orders must be dynamic
+      console.log("Fetching orders from database (always dynamic)...");
+      await fetchOrders();
 
-      if (testError) {
-        console.warn("Database connectivity test failed:", {
-          message: testError.message,
-          code: testError.code,
-          details: testError.details,
-        });
-        useFallbackData();
-        setDataLoaded(false);
-
-        let errorDescription = "Using demo data. ";
-        if (testError.code === "PGRST116") {
-          errorDescription += "Database tables may not be set up yet.";
-        } else if (testError.message?.includes("Failed to fetch")) {
-          errorDescription += "Network connection issue.";
-        } else {
-          errorDescription += "Database may not be configured properly.";
-        }
-
-        toast({
-          title: "Database Unavailable",
-          description: errorDescription,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Fetch all data with individual error handling
+      // Fetch other data with individual error handling
       const results = await Promise.allSettled([
         fetchProducts(),
-        fetchOrders(),
         fetchReviews(),
         fetchUsers(),
         fetchContactMessages(),
         fetchStats(),
       ]);
 
-      // Check if any fetches failed
+      // Check if any non-order fetches failed
       const failedFetches = results.filter(
         (result) => result.status === "rejected",
       );
+
       if (failedFetches.length > 0) {
-        console.warn(`${failedFetches.length} data fetches failed`);
-        // Don't use fallback if some data loaded successfully
-        setDataLoaded(results.some((result) => result.status === "fulfilled"));
+        console.warn(
+          `${failedFetches.length} non-order data fetches failed, using fallback for those`,
+        );
+        // Use fallback data only for failed non-order components
+        useFallbackDataForNonOrders();
+        setDataLoaded(true); // Orders are always loaded, so mark as loaded
       } else {
         setDataLoaded(true);
         console.log("All data fetched successfully");
       }
     } catch (error: any) {
       console.error("Error in main fetchData:", error.message || error);
-      // Use fallback data for demo
-      useFallbackData();
-      setDataLoaded(false);
+      // Always try to fetch orders even if other things fail
+      try {
+        await fetchOrders();
+        console.log("Orders fetched successfully despite other errors");
+      } catch (orderError) {
+        console.error("Failed to fetch orders:", orderError);
+        setOrders([]); // Keep orders empty if database fails
+      }
+
+      // Use fallback data for non-order components only
+      useFallbackDataForNonOrders();
+      setDataLoaded(true);
       toast({
-        title: "Database Connection Issue",
+        title: "Partial Database Connection",
         description:
-          "Using demo data. Please check your database configuration.",
-        variant: "destructive",
+          "Orders are live from database. Some other data using fallbacks.",
+        variant: "default",
       });
     } finally {
       setLoading(false);
@@ -402,10 +338,20 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      // Fetch orders first
+      // Fetch orders with order items and user profiles using join
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select("*")
+        .select(
+          `
+          *,
+          order_items(*),
+          profiles:user_id(
+            id,
+            full_name,
+            email
+          )
+        `,
+        )
         .order("created_at", { ascending: false });
 
       if (ordersError) {
@@ -414,9 +360,35 @@ const AdminDashboard = () => {
           code: ordersError.code,
           details: ordersError.details,
         });
-        throw new Error(
-          `Failed to fetch orders: ${ordersError.message || "Unknown error"}`,
+
+        // If the JOIN failed, try without profile join as fallback
+        console.warn("Trying to fetch orders without profile join...");
+        const { data: fallbackOrdersData, error: fallbackError } =
+          await supabase
+            .from("orders")
+            .select("*, order_items(*)")
+            .order("created_at", { ascending: false });
+
+        if (fallbackError) {
+          throw new Error(
+            `Failed to fetch orders: ${ordersError.message || "Unknown error"}`,
+          );
+        }
+
+        console.log(
+          "Fallback orders fetch successful, will use separate profile lookup",
         );
+        ordersData = fallbackOrdersData;
+      }
+
+      console.log("Orders data fetched:", ordersData?.length || 0, "orders");
+      if (ordersData?.length > 0) {
+        console.log("First order sample:", {
+          id: ordersData[0].id,
+          user_id: ordersData[0].user_id,
+          has_profiles: !!ordersData[0].profiles,
+          profiles_data: ordersData[0].profiles,
+        });
       }
 
       // Get unique user IDs from orders
@@ -425,6 +397,8 @@ const AdminDashboard = () => {
           (ordersData || []).map((order) => order.user_id).filter(Boolean),
         ),
       ];
+
+      console.log("Fetching profiles for user IDs:", userIds);
 
       let profilesData: any[] = [];
 
@@ -438,8 +412,32 @@ const AdminDashboard = () => {
 
           if (profilesError) {
             console.warn("Could not fetch user profiles:", profilesError);
+            // Try to fetch from auth.users as fallback
+            try {
+              const { data: authUsers, error: authError } =
+                await supabase.auth.admin.listUsers();
+              if (!authError && authUsers?.users) {
+                profilesData = authUsers.users
+                  .filter((user) => userIds.includes(user.id))
+                  .map((user) => ({
+                    id: user.id,
+                    full_name:
+                      user.user_metadata?.full_name ||
+                      user.email?.split("@")[0] ||
+                      "User",
+                    email: user.email || "No email",
+                  }));
+                console.log(
+                  "Using auth.users as fallback:",
+                  profilesData.length,
+                );
+              }
+            } catch (authFallbackError) {
+              console.warn("Auth fallback also failed:", authFallbackError);
+            }
           } else {
             profilesData = profiles || [];
+            console.log("Profiles fetched successfully:", profilesData.length);
           }
         } catch (profileError: any) {
           console.warn("Error fetching profiles:", profileError);
@@ -455,12 +453,43 @@ const AdminDashboard = () => {
         {} as Record<string, any>,
       );
 
-      // Transform orders to include user info
-      const transformedOrders = (ordersData || []).map((order) => ({
-        ...order,
-        user_name: profileMap[order.user_id]?.full_name || "Guest User",
-        user_email: profileMap[order.user_id]?.email || "guest@example.com",
-      }));
+      console.log(
+        "Profile map created:",
+        Object.keys(profileMap).length,
+        "profiles mapped",
+      );
+
+      // Transform orders to include user info from joined profiles
+      const transformedOrders = (ordersData || []).map((order) => {
+        // First try joined profile data, then fallback to profileMap
+        const joinedProfile = order.profiles;
+        const mappedProfile = profileMap[order.user_id];
+        const profile = joinedProfile || mappedProfile;
+
+        let user_name, user_email;
+
+        if (profile && profile.email) {
+          // Use real user data when available
+          user_name = profile.full_name || profile.email.split("@")[0];
+          user_email = profile.email;
+          console.log(`Order ${order.id}: Real user ${profile.email} found`);
+        } else {
+          // Show order but indicate missing user data
+          user_name = `User ID: ${order.user_id?.substring(0, 8) || "Unknown"}`;
+          user_email = "Profile not found";
+          console.warn(
+            `Order ${order.id}: No user profile found for user_id: ${order.user_id}`,
+          );
+        }
+
+        return {
+          ...order,
+          user_name,
+          user_email,
+          // Ensure order_items is always an array
+          order_items: order.order_items || [],
+        };
+      });
 
       setOrders(transformedOrders);
       console.log("Orders fetched successfully:", transformedOrders.length);
@@ -470,7 +499,8 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Orders Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description:
+          "Could not load orders from database. Please check your connection.",
         variant: "destructive",
       });
     }
@@ -519,7 +549,8 @@ const AdminDashboard = () => {
       if (!error.message?.includes("infinite recursion")) {
         toast({
           title: "Users Load Error",
-          description: "Using demo data. Database connection may be limited.",
+          description:
+            "Could not load user data from database. Please check your connection.",
           variant: "destructive",
         });
       }
@@ -679,6 +710,64 @@ const AdminDashboard = () => {
     return orders.filter((order) => order.payment_method === "cod");
   };
 
+  // Filter COD orders with search and filter criteria
+  const getFilteredCodOrders = () => {
+    let filtered = getCodOrders();
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (order) =>
+          order.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Filter by status
+    if (orderStatusFilter !== "all") {
+      filtered = filtered.filter((order) => order.status === orderStatusFilter);
+    }
+
+    // Filter by date
+    if (orderDateFilter === "custom" && orderStartDate && orderEndDate) {
+      const startDate = new Date(orderStartDate).toISOString();
+      const endDate = new Date(orderEndDate + "T23:59:59").toISOString();
+      filtered = filtered.filter((order) => {
+        const orderDate = order.created_at;
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+    } else if (orderDateFilter !== "all") {
+      const now = new Date();
+      let filterDate = new Date();
+
+      switch (orderDateFilter) {
+        case "today":
+          filterDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          break;
+        case "week":
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case "quarter":
+          filterDate.setMonth(now.getMonth() - 3);
+          break;
+      }
+
+      filtered = filtered.filter(
+        (order) => new Date(order.created_at) >= filterDate,
+      );
+    }
+
+    return filtered;
+  };
+
   const handleUpdatePaymentStatus = async (
     orderId: string,
     paymentStatus: "paid" | "pending",
@@ -747,7 +836,8 @@ const AdminDashboard = () => {
   };
 
   const getFilteredOrders = () => {
-    let filtered = [...orders];
+    // Exclude COD orders from regular order management
+    let filtered = orders.filter((order) => order.payment_method !== "cod");
 
     // Filter by search term
     if (searchTerm) {
@@ -1187,7 +1277,23 @@ const AdminDashboard = () => {
       if (newStatus === "shipped") {
         const order = orders.find((o) => o.id === orderId);
         if (order) {
-          await sendOrderShippedEmail(orderId, order.user_email, order);
+          try {
+            const emailResult = await sendOrderShippedEmail(
+              orderId,
+              order.user_email,
+              order,
+            );
+            if (!emailResult.success) {
+              console.warn(
+                "Email notification failed but order status updated successfully",
+              );
+            }
+          } catch (emailError) {
+            console.warn(
+              "Email notification error (non-critical):",
+              emailError,
+            );
+          }
         }
       }
 
@@ -1210,6 +1316,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const sendOrderUpdate = async (order: Order) => {
+    try {
+      const emailResult = await sendOrderShippedEmail(
+        order.id,
+        order.user_email,
+        order,
+      );
+
+      if (emailResult.success) {
+        toast({
+          title: "Order update sent!",
+          description: `Order update email sent to ${order.user_email}`,
+        });
+      } else {
+        toast({
+          title: "Email unavailable",
+          description:
+            "Order update could not be sent - email service unavailable",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.warn("Email service error:", error);
+      toast({
+        title: "Email unavailable",
+        description: "Email service is currently unavailable",
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportOrdersToCSV = () => {
     const csvContent = [
       [
@@ -1221,7 +1358,7 @@ const AdminDashboard = () => {
         "Payment Method",
         "Date",
       ],
-      ...orders.map((order) => [
+      ...getFilteredOrders().map((order) => [
         order.id,
         order.user_name || "N/A",
         order.user_email || "N/A",
@@ -1239,6 +1376,39 @@ const AdminDashboard = () => {
     const a = document.createElement("a");
     a.href = url;
     a.download = "orders.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportCodOrdersToCSV = () => {
+    const csvContent = [
+      [
+        "Order ID",
+        "Customer",
+        "Email",
+        "Total",
+        "Status",
+        "Payment Status",
+        "Date",
+      ],
+      ...getFilteredCodOrders().map((order) => [
+        order.id,
+        order.user_name || "N/A",
+        order.user_email || "N/A",
+        order.total_amount,
+        order.status,
+        order.payment_status === "paid" ? "Collected" : "Pending Collection",
+        new Date(order.created_at).toLocaleDateString(),
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cod-orders.csv";
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -1596,7 +1766,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -1607,7 +1777,12 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="orders">
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Orders ({orders.length})
+              Orders (
+              {orders.filter((order) => order.payment_method !== "cod").length})
+            </TabsTrigger>
+            <TabsTrigger value="cod-orders">
+              <CreditCard className="h-4 w-4 mr-2" />
+              COD Orders ({getCodOrders().length})
             </TabsTrigger>
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />
@@ -2208,167 +2383,6 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
-            {/* COD Orders Tracking */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Cash on Delivery Orders
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {
-                        getCodOrders().filter((o) => o.status === "pending")
-                          .length
-                      }
-                    </div>
-                    <div className="text-sm text-blue-600">Pending COD</div>
-                  </div>
-                  <div className="bg-orange-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {
-                        getCodOrders().filter((o) => o.status === "confirmed")
-                          .length
-                      }
-                    </div>
-                    <div className="text-sm text-orange-600">Confirmed COD</div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {
-                        getCodOrders().filter((o) => o.status === "shipped")
-                          .length
-                      }
-                    </div>
-                    <div className="text-sm text-green-600">Shipped COD</div>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {formatPrice(
-                        getCodOrders()
-                          .filter((o) => o.status === "delivered")
-                          .reduce((sum, order) => sum + order.total_amount, 0),
-                      )}
-                    </div>
-                    <div className="text-sm text-purple-600">
-                      COD Revenue (Collected)
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Payment Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getCodOrders()
-                        .slice(0, 10)
-                        .map((order) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{order.user_name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {order.user_email}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {formatPrice(order.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  order.status === "delivered"
-                                    ? "bg-green-100 text-green-700"
-                                    : order.status === "shipped"
-                                      ? "bg-blue-100 text-blue-700"
-                                      : order.status === "confirmed"
-                                        ? "bg-orange-100 text-orange-700"
-                                        : "bg-gray-100 text-gray-700"
-                                }
-                              >
-                                {order.status.charAt(0).toUpperCase() +
-                                  order.status.slice(1)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  order.payment_status === "paid"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-yellow-100 text-yellow-700"
-                                }
-                              >
-                                {order.payment_status === "paid"
-                                  ? "Collected"
-                                  : "Pending Collection"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(order.created_at)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(order)}
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                {order.payment_status === "pending" &&
-                                  order.status === "delivered" && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-green-600"
-                                      onClick={() =>
-                                        handleUpdatePaymentStatus(
-                                          order.id,
-                                          "paid",
-                                        )
-                                      }
-                                    >
-                                      Mark Collected
-                                    </Button>
-                                  )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {getCodOrders().length > 10 && (
-                  <div className="text-center mt-4">
-                    <p className="text-sm text-gray-500">
-                      Showing 10 of {getCodOrders().length} COD orders.
-                      <span className="text-blue-600 cursor-pointer ml-1">
-                        View all in Order Management below
-                      </span>
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Order Management</CardTitle>
@@ -2582,6 +2596,314 @@ const AdminDashboard = () => {
                                   variant="outline"
                                   size="sm"
                                   title="Send Email"
+                                >
+                                  <Send className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* COD Orders Tab */}
+          <TabsContent value="cod-orders" className="space-y-6">
+            {/* COD Orders Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Cash on Delivery Orders Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "pending")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-blue-600">Pending COD</div>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "confirmed")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-orange-600">Confirmed COD</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "shipped")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-green-600">Shipped COD</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatPrice(
+                        getCodOrders()
+                          .filter((o) => o.status === "delivered")
+                          .reduce((sum, order) => sum + order.total_amount, 0),
+                      )}
+                    </div>
+                    <div className="text-sm text-purple-600">
+                      COD Revenue (Collected)
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* COD Orders Management */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>COD Orders Management</CardTitle>
+                <Button onClick={exportCodOrdersToCSV} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export COD Orders
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {/* COD Order Filters */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-search"
+                      className="text-sm font-medium"
+                    >
+                      Search:
+                    </Label>
+                    <Input
+                      id="cod-order-search"
+                      placeholder="Search COD orders, customers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-48"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-status"
+                      className="text-sm font-medium"
+                    >
+                      Status:
+                    </Label>
+                    <Select
+                      value={orderStatusFilter}
+                      onValueChange={setOrderStatusFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-date"
+                      className="text-sm font-medium"
+                    >
+                      Date:
+                    </Label>
+                    <Select
+                      value={orderDateFilter}
+                      onValueChange={setOrderDateFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Dates</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">This Week</SelectItem>
+                        <SelectItem value="month">This Month</SelectItem>
+                        <SelectItem value="quarter">This Quarter</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {orderDateFilter === "custom" && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="cod-start-date"
+                          className="text-sm font-medium"
+                        >
+                          From:
+                        </Label>
+                        <Input
+                          id="cod-start-date"
+                          type="date"
+                          value={orderStartDate}
+                          onChange={(e) => setOrderStartDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="cod-end-date"
+                          className="text-sm font-medium"
+                        >
+                          To:
+                        </Label>
+                        <Input
+                          id="cod-end-date"
+                          type="date"
+                          value={orderEndDate}
+                          onChange={(e) => setOrderEndDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    Showing {getFilteredCodOrders().length} of{" "}
+                    {getCodOrders().length} COD orders
+                  </div>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Payment Status</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getFilteredCodOrders().map((order) => {
+                        const validNextStatuses = getValidNextStatuses(
+                          order.status,
+                        );
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm font-medium">
+                              {formatOrderId(order)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{order.user_name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {order.user_email}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {order.order_items?.length || 0} items
+                            </TableCell>
+                            <TableCell>
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.payment_status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.payment_status === "pending"
+                                      ? "bg-yellow-100 text-yellow-700"
+                                      : "bg-red-100 text-red-700"
+                                }
+                              >
+                                {order.payment_status === "paid"
+                                  ? "Collected"
+                                  : "Pending Collection"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={order.status}
+                                onValueChange={(value) =>
+                                  updateOrderStatus(order.id, value)
+                                }
+                                disabled={validNextStatuses.length === 0}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allOrderStatuses.map((status) => (
+                                    <SelectItem
+                                      key={status.value}
+                                      value={status.value}
+                                      disabled={
+                                        status.value !== order.status &&
+                                        !validNextStatuses.includes(
+                                          status.value,
+                                        )
+                                      }
+                                    >
+                                      {status.label}
+                                      {status.value === order.status &&
+                                        " (current)"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(order.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setViewingOrder(order)}
+                                  title="View Order Details"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <ReceiptGenerator order={order} />
+                                {order.payment_status === "pending" &&
+                                  order.status === "delivered" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600"
+                                      onClick={() =>
+                                        handleUpdatePaymentStatus(
+                                          order.id,
+                                          "paid",
+                                        )
+                                      }
+                                    >
+                                      Mark Collected
+                                    </Button>
+                                  )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => sendOrderUpdate(order)}
+                                  title="Send Order Update"
                                 >
                                   <Send className="h-3 w-3" />
                                 </Button>

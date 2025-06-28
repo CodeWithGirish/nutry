@@ -1,10 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
+// Use direct Supabase URL - proxy approach was causing issues in cloud environment
 const supabaseUrl = "https://truzxbzzgmfrifiygmgr.supabase.co";
+
 const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXp4Ynp6Z21mcmlmaXlnbWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDQ3ODQsImV4cCI6MjA2NjI4MDc4NH0.ec8oCrlnkWOy96uKt9Z_JctKoOwX81z_gO6U3kuIRbc";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+console.log("Supabase configuration:", {
+  supabaseUrl,
+  mode: import.meta.env.MODE,
+});
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+});
 
 // Create an admin client for bypassing RLS when needed
 // Note: In production, you should use service role key only on server side
@@ -13,7 +30,7 @@ export const createAdminClient = () => {
   return supabase;
 };
 
-// Test database connection
+// Test database connection with fallback
 export const testDatabaseConnection = async () => {
   try {
     console.log("Testing database connection...");
@@ -30,6 +47,7 @@ export const testDatabaseConnection = async () => {
         code: error.code,
         status: error.status,
       });
+      console.warn("Falling back to demo data mode");
       return false;
     }
 
@@ -37,7 +55,23 @@ export const testDatabaseConnection = async () => {
     return true;
   } catch (error) {
     console.error("Database connection test error:", error);
+    console.warn("Network error - falling back to demo data mode");
     return false;
+  }
+};
+
+// Create a wrapper for Supabase queries with error handling
+export const safeSupabaseQuery = async (queryFn: () => Promise<any>) => {
+  try {
+    const result = await queryFn();
+    if (result.error) {
+      console.error("Supabase query error:", result.error);
+      throw new Error(result.error.message);
+    }
+    return result;
+  } catch (error) {
+    console.error("Network or connection error:", error);
+    throw error;
   }
 };
 
@@ -85,7 +119,13 @@ export interface CartItem {
 export interface Order {
   id: string;
   user_id: string;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "packed"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
   payment_method: "stripe" | "cod";
   payment_status: "pending" | "paid" | "failed";
   total_amount: number;

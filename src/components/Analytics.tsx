@@ -109,10 +109,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.error("Supabase error fetching revenue data:", error);
-        throw new Error(
-          `Failed to fetch revenue data: ${error.message || JSON.stringify(error)}`,
-        );
+        console.warn("Database unavailable, using demo revenue data");
+        throw new Error("Database connection failed");
       }
 
       // Group orders by date and calculate daily revenue

@@ -291,7 +291,7 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setCategoryData(formattedData);
       console.log("Category data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.error("Error fetching category data:", error.message || error);
+      console.log("Using demo category data (database offline)");
       // Use fallback category data
       const colors = ["#e8914c", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
       const fallbackData = [

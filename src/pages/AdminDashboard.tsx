@@ -421,7 +421,8 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Orders Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description:
+          "Could not load orders from database. Please check your connection.",
         variant: "destructive",
       });
     }

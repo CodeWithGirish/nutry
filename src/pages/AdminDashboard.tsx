@@ -520,7 +520,8 @@ const AdminDashboard = () => {
       if (!error.message?.includes("infinite recursion")) {
         toast({
           title: "Users Load Error",
-          description: "Using demo data. Database connection may be limited.",
+          description:
+            "Could not load user data from database. Please check your connection.",
           variant: "destructive",
         });
       }

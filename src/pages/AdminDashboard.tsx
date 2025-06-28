@@ -747,7 +747,8 @@ const AdminDashboard = () => {
   };
 
   const getFilteredOrders = () => {
-    let filtered = [...orders];
+    // Exclude COD orders from regular order management
+    let filtered = orders.filter((order) => order.payment_method !== "cod");
 
     // Filter by search term
     if (searchTerm) {

@@ -168,8 +168,6 @@ const AdminDashboard = () => {
     }
   }, [timeRange]);
 
-
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -583,8 +581,6 @@ const AdminDashboard = () => {
         description: "Could not load reviews from database.",
         variant: "destructive",
       });
-        });
-      }
     }
   };
 

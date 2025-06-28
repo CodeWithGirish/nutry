@@ -426,24 +426,20 @@ const AdminDashboard = () => {
 
         let user_name, user_email;
 
-        if (profile) {
+        if (profile && profile.id) {
           // Use profile data (either real or fallback)
-          if (profile.email && !profile.email.includes("@unknown.com")) {
+          if (
+            profile.email &&
+            profile.email !== "Email not available" &&
+            !profile.email.includes("@unknown.com")
+          ) {
             // Real user data
             user_name =
               profile.full_name || profile.email.split("@")[0] || "User";
             user_email = profile.email;
             console.log(`Order ${order.id}: Real user ${profile.email} found`);
-          } else if (
-            profile.full_name &&
-            profile.full_name.startsWith("User-")
-          ) {
-            // Fallback data - show more user-friendly format
-            user_name = `Customer ${order.user_id?.substring(0, 8) || "Unknown"}`;
-            user_email = "Email not available";
-            console.log(`Order ${order.id}: Using fallback profile data`);
           } else {
-            // Some profile data available
+            // Some profile data available but may be fallback
             user_name =
               profile.full_name || `Customer ${order.user_id?.substring(0, 8)}`;
             user_email = profile.email || "Email not available";
@@ -452,12 +448,16 @@ const AdminDashboard = () => {
         } else {
           // No profile data at all
           user_name = `Customer ${order.user_id?.substring(0, 8) || "Unknown"}`;
-          user_email = "Profile unavailable";
+          user_email = "Email not available";
           console.warn(
             `Order ${order.id}: No user profile found for user_id: ${order.user_id}`,
           );
         }
 
+        console.log(`Order ${order.id} final result:`, {
+          user_name,
+          user_email,
+        });
         return {
           ...order,
           user_name,

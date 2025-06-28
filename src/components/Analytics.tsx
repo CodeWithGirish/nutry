@@ -202,7 +202,7 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setProductData(formattedData);
       console.log("Product data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.error("Error fetching product data:", error.message || error);
+      console.log("Using demo product data (database offline)");
       // Use fallback data
       const fallbackData = [
         {

@@ -360,9 +360,25 @@ const AdminDashboard = () => {
           code: ordersError.code,
           details: ordersError.details,
         });
-        throw new Error(
-          `Failed to fetch orders: ${ordersError.message || "Unknown error"}`,
+
+        // If the JOIN failed, try without profile join as fallback
+        console.warn("Trying to fetch orders without profile join...");
+        const { data: fallbackOrdersData, error: fallbackError } =
+          await supabase
+            .from("orders")
+            .select("*, order_items(*)")
+            .order("created_at", { ascending: false });
+
+        if (fallbackError) {
+          throw new Error(
+            `Failed to fetch orders: ${ordersError.message || "Unknown error"}`,
+          );
+        }
+
+        console.log(
+          "Fallback orders fetch successful, will use separate profile lookup",
         );
+        ordersData = fallbackOrdersData;
       }
 
       // Get unique user IDs from orders

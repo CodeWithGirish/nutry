@@ -210,9 +210,7 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .limit(10);
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch product data:", error);
         throw new Error("Database connection failed");
       }
 

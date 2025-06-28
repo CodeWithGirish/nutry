@@ -356,10 +356,7 @@ const AdminDashboard = () => {
       // Fetch orders with order items using join
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select(`
-          *,
-          order_items:order_items(*)
-        `)
+        .select("*, order_items(*)")
         .order("created_at", { ascending: false });
 
       if (ordersError) {

@@ -2442,6 +2442,314 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* COD Orders Tab */}
+          <TabsContent value="cod-orders" className="space-y-6">
+            {/* COD Orders Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Cash on Delivery Orders Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "pending")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-blue-600">Pending COD</div>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "confirmed")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-orange-600">Confirmed COD</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {
+                        getCodOrders().filter((o) => o.status === "shipped")
+                          .length
+                      }
+                    </div>
+                    <div className="text-sm text-green-600">Shipped COD</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatPrice(
+                        getCodOrders()
+                          .filter((o) => o.status === "delivered")
+                          .reduce((sum, order) => sum + order.total_amount, 0),
+                      )}
+                    </div>
+                    <div className="text-sm text-purple-600">
+                      COD Revenue (Collected)
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* COD Orders Management */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>COD Orders Management</CardTitle>
+                <Button onClick={exportOrdersToCSV} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export COD Orders
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {/* COD Order Filters */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-search"
+                      className="text-sm font-medium"
+                    >
+                      Search:
+                    </Label>
+                    <Input
+                      id="cod-order-search"
+                      placeholder="Search COD orders, customers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-48"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-status"
+                      className="text-sm font-medium"
+                    >
+                      Status:
+                    </Label>
+                    <Select
+                      value={orderStatusFilter}
+                      onValueChange={setOrderStatusFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="cod-order-date"
+                      className="text-sm font-medium"
+                    >
+                      Date:
+                    </Label>
+                    <Select
+                      value={orderDateFilter}
+                      onValueChange={setOrderDateFilter}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Dates</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">This Week</SelectItem>
+                        <SelectItem value="month">This Month</SelectItem>
+                        <SelectItem value="quarter">This Quarter</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {orderDateFilter === "custom" && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="cod-start-date"
+                          className="text-sm font-medium"
+                        >
+                          From:
+                        </Label>
+                        <Input
+                          id="cod-start-date"
+                          type="date"
+                          value={orderStartDate}
+                          onChange={(e) => setOrderStartDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="cod-end-date"
+                          className="text-sm font-medium"
+                        >
+                          To:
+                        </Label>
+                        <Input
+                          id="cod-end-date"
+                          type="date"
+                          value={orderEndDate}
+                          onChange={(e) => setOrderEndDate(e.target.value)}
+                          className="w-36"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    Showing {getFilteredCodOrders().length} of{" "}
+                    {getCodOrders().length} COD orders
+                  </div>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Payment Status</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getFilteredCodOrders().map((order) => {
+                        const validNextStatuses = getValidNextStatuses(
+                          order.status,
+                        );
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm font-medium">
+                              {formatOrderId(order)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{order.user_name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {order.user_email}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {order.order_items?.length || 0} items
+                            </TableCell>
+                            <TableCell>
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  order.payment_status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.payment_status === "pending"
+                                      ? "bg-yellow-100 text-yellow-700"
+                                      : "bg-red-100 text-red-700"
+                                }
+                              >
+                                {order.payment_status === "paid"
+                                  ? "Collected"
+                                  : "Pending Collection"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={order.status}
+                                onValueChange={(value) =>
+                                  updateOrderStatus(order.id, value)
+                                }
+                                disabled={validNextStatuses.length === 0}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allOrderStatuses.map((status) => (
+                                    <SelectItem
+                                      key={status.value}
+                                      value={status.value}
+                                      disabled={
+                                        status.value !== order.status &&
+                                        !validNextStatuses.includes(
+                                          status.value,
+                                        )
+                                      }
+                                    >
+                                      {status.label}
+                                      {status.value === order.status &&
+                                        " (current)"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(order.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setViewingOrder(order)}
+                                  title="View Order Details"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <ReceiptGenerator order={order} />
+                                {order.payment_status === "pending" &&
+                                  order.status === "delivered" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600"
+                                      onClick={() =>
+                                        handleUpdatePaymentStatus(
+                                          order.id,
+                                          "paid",
+                                        )
+                                      }
+                                    >
+                                      Mark Collected
+                                    </Button>
+                                  )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => sendOrderUpdate(order)}
+                                  title="Send Order Update"
+                                >
+                                  <Send className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             {/* Contact Messages */}

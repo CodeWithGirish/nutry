@@ -305,6 +305,10 @@ const AdminDashboard = () => {
           has_profiles: !!ordersData[0].profiles,
           profiles_data: ordersData[0].profiles,
         });
+        console.log(
+          "All order user_ids:",
+          (ordersData || []).map((o) => ({ id: o.id, user_id: o.user_id })),
+        );
       }
 
       // Get unique user IDs from orders

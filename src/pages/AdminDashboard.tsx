@@ -469,6 +469,17 @@ const AdminDashboard = () => {
 
       setOrders(transformedOrders);
       console.log("Orders fetched successfully:", transformedOrders.length);
+      console.log(
+        "Sample transformed order:",
+        transformedOrders[0]
+          ? {
+              id: transformedOrders[0].id,
+              user_id: transformedOrders[0].user_id,
+              user_name: transformedOrders[0].user_name,
+              user_email: transformedOrders[0].user_email,
+            }
+          : "No orders found",
+      );
     } catch (error: any) {
       console.error("Error fetching orders:", error.message || error);
       setOrders([]);

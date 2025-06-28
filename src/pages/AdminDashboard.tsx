@@ -339,7 +339,7 @@ const AdminDashboard = () => {
   const fetchOrders = async () => {
     try {
       // Fetch orders with order items and user profiles using join
-      const { data: ordersData, error: ordersError } = await supabase
+      let { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(
           `

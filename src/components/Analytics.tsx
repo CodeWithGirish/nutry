@@ -317,36 +317,34 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       const totalOrders = !ordersError && orders ? orders.length : 89; // Fallback value
       const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 173; // Fallback value
 
-      // Use actual customer count or fallback
-      const actualCustomerCount = !customerError ? customerCount || 0 : 156; // Fallback value
+      // Use actual customer count
+      const actualCustomerCount = !customerError ? customerCount || 0 : 0;
 
-      // Simulate growth percentages for demo
+      // Real growth calculations would require historical data comparison
       setStats({
         totalRevenue,
-        revenueGrowth: Math.floor(Math.random() * 30) + 5,
+        revenueGrowth: 0, // Real growth calculation would compare with previous period
         totalOrders,
-        orderGrowth: Math.floor(Math.random() * 20) + 3,
+        orderGrowth: 0, // Real growth calculation would compare with previous period
         avgOrderValue,
-        avgOrderGrowth: Math.floor(Math.random() * 15) + 2,
+        avgOrderGrowth: 0, // Real growth calculation would compare with previous period
         customerCount: actualCustomerCount,
-        customerGrowth: Math.floor(Math.random() * 25) + 8,
+        customerGrowth: 0, // Real growth calculation would compare with previous period
       });
 
       console.log("Analytics stats fetched successfully");
     } catch (error: any) {
       console.error("Error fetching analytics stats:", error.message || error);
-      // Use fallback stats for demo purposes
       setStats({
-        totalRevenue: 15420,
-        revenueGrowth: 12,
-        totalOrders: 89,
-        orderGrowth: 8,
-        avgOrderValue: 173,
-        avgOrderGrowth: 5,
-        customerCount: 156,
-        customerGrowth: 15,
+        totalRevenue: 0,
+        revenueGrowth: 0,
+        totalOrders: 0,
+        orderGrowth: 0,
+        avgOrderValue: 0,
+        avgOrderGrowth: 0,
+        customerCount: 0,
+        customerGrowth: 0,
       });
-      console.log("Using fallback analytics stats");
     }
   };
 

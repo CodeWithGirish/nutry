@@ -1578,16 +1578,9 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
-            <Badge
-              variant="outline"
-              className={
-                dataLoaded
-                  ? "border-green-200 text-green-800"
-                  : "border-orange-200 text-orange-800"
-              }
-            >
+            <Badge variant="default" className="ml-2">
               <Clock className="h-3 w-3 mr-1" />
-              {dataLoaded ? "Live Data" : "Demo Data"}
+              Live Data
             </Badge>
             <Button variant="ghost" onClick={fetchData} size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />

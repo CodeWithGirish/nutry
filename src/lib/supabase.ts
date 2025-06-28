@@ -119,7 +119,13 @@ export interface CartItem {
 export interface Order {
   id: string;
   user_id: string;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "packed"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
   payment_method: "stripe" | "cod";
   payment_status: "pending" | "paid" | "failed";
   total_amount: number;

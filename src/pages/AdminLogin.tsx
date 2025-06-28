@@ -17,27 +17,6 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-const DEMO_CREDENTIALS = [
-  {
-    email: "admin@nutrivault.com",
-    password: "Admin123!@#",
-    name: "Admin User",
-    role: "admin",
-  },
-  {
-    email: "superadmin@nutrivault.com",
-    password: "SuperAdmin123!@#",
-    name: "Super Admin",
-    role: "super_admin",
-  },
-  {
-    email: "demo@nutrivault.com",
-    password: "Demo123!@#",
-    name: "Demo Admin",
-    role: "admin",
-  },
-];
-
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,13 +82,6 @@ const AdminLogin = () => {
     }
   };
 
-  const handleMockLogin = (credentials: (typeof DEMO_CREDENTIALS)[0]) => {
-    setEmail(credentials.email);
-    setPassword(credentials.password);
-    setError("");
-    setLoginAttempts(0);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -154,35 +126,6 @@ const AdminLogin = () => {
             )}
 
             {/* Mock Login Options */}
-            <div className="space-y-3">
-              <div className="text-center">
-                <p className="text-slate-300 text-sm mb-3">
-                  Quick Login (Demo)
-                </p>
-              </div>
-              {DEMO_CREDENTIALS.map((cred) => (
-                <Button
-                  key={cred.email}
-                  variant="outline"
-                  className="w-full justify-start bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600"
-                  onClick={() => handleMockLogin(cred)}
-                  disabled={loading}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  <div className="text-left">
-                    <div className="font-medium">{cred.name}</div>
-                    <div className="text-xs text-slate-400">{cred.email}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-
-            <div className="relative">
-              <Separator className="bg-slate-600" />
-              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 px-2 text-sm text-slate-400">
-                Or enter manually
-              </span>
-            </div>
 
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>
@@ -258,7 +201,6 @@ const AdminLogin = () => {
             </form>
 
             <div className="text-center text-sm text-slate-400 space-y-1">
-              <p>⚠️ Demo Credentials Available Above</p>
               <p className="text-xs">
                 All access attempts are logged and monitored
               </p>

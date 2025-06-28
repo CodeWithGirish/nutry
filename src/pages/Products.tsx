@@ -33,7 +33,6 @@ const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -96,13 +95,10 @@ const Products = () => {
 
         // Use fallback products if it's a database connection error
         if (isDatabaseError(error)) {
-          console.log(
-            "Using fallback products due to database connection error",
-          );
-          setProducts(mockProducts);
-          generateCategories(mockProducts);
-          setIsDemoMode(true);
-          setError(""); // Clear error since we have fallback data
+          console.log("Database connection error, unable to load products");
+          setProducts([]);
+          generateCategories([]);
+          setError("Unable to connect to database. Please try again later.");
           return;
         }
 
@@ -127,10 +123,9 @@ const Products = () => {
 
       // Use fallback products if it's a database connection error
       if (isDatabaseError(error)) {
-        console.log("Using fallback products due to network error");
-        setProducts(mockProducts);
-        generateCategories(mockProducts);
-        setIsDemoMode(true);
+        setProducts([]);
+        generateCategories([]);
+        setError("Unable to connect to database. Please try again later.");
         setError(""); // Clear error since we have fallback data
       } else if (error instanceof Error && error.message.includes("timeout")) {
         setError(

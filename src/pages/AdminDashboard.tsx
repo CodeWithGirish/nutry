@@ -168,84 +168,6 @@ const AdminDashboard = () => {
     }
   }, [timeRange]);
 
-  // Fallback demo data for non-order components only
-  const useFallbackDataForNonOrders = () => {
-    console.log(
-      "Using fallback demo data for products, reviews, and users only",
-    );
-
-    // Set demo products
-    setProducts([
-      {
-        id: "demo-1",
-        name: "Premium California Almonds",
-        description:
-          "Raw, unsalted almonds packed with protein and healthy fats.",
-        category: "Nuts",
-        image_url: "🥜",
-        images: ["🥜"],
-        prices: JSON.stringify([
-          { weight: "250g", price: 24.99 },
-          { weight: "500g", price: 45.99 },
-          { weight: "1kg", price: 85.99 },
-        ]),
-        original_price: 29.99,
-        rating: 4.8,
-        review_count: 24,
-        in_stock: true,
-        is_organic: true,
-        stock_quantity: 150,
-        is_featured: true,
-        features: ["Organic", "Raw", "Unsalted"],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Product,
-      {
-        id: "demo-2",
-        name: "Organic Dates",
-        description: "Sweet, natural dates perfect for snacking or baking.",
-        category: "Dates",
-        image_url: "🌰",
-        images: ["🌰"],
-        prices: JSON.stringify([
-          { weight: "250g", price: 18.99 },
-          { weight: "500g", price: 34.99 },
-        ]),
-        original_price: null,
-        rating: 4.6,
-        review_count: 18,
-        in_stock: true,
-        is_organic: true,
-        stock_quantity: 85,
-        is_featured: false,
-        features: ["Organic", "Sweet", "Natural"],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Product,
-    ]);
-
-    // Keep orders empty - orders must be dynamic from database only
-    setOrders([]);
-
-    // Set demo reviews
-    setReviews([
-      {
-        id: "demo-review-1",
-        product_id: "demo-1",
-        user_id: "demo-user-1",
-        rating: 5,
-        title: "Excellent quality!",
-        comment: "These almonds are fresh and delicious. Great packaging too!",
-        created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-        products: { name: "Premium California Almonds" },
-        profiles: { full_name: "John Doe", email: "john@example.com" },
-      },
-    ]);
-
-    // Don't set demo users - only show real registered users from database
-    setUsers([]);
-  };
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -271,15 +193,11 @@ const AdminDashboard = () => {
 
       if (failedFetches.length > 0) {
         console.warn(
-          `${failedFetches.length} non-order data fetches failed, using fallback for those`,
+          `${failedFetches.length} data fetches failed, continuing with available data`,
         );
-        // Use fallback data only for failed non-order components
-        useFallbackDataForNonOrders();
-        setDataLoaded(true); // Orders are always loaded, so mark as loaded
-      } else {
-        setDataLoaded(true);
-        console.log("All data fetched successfully");
       }
+      setDataLoaded(true);
+      console.log("Data fetch completed");
     } catch (error: any) {
       console.error("Error in main fetchData:", error.message || error);
       // Always try to fetch orders even if other things fail
@@ -291,14 +209,12 @@ const AdminDashboard = () => {
         setOrders([]); // Keep orders empty if database fails
       }
 
-      // Use fallback data for non-order components only
-      useFallbackDataForNonOrders();
       setDataLoaded(true);
       toast({
-        title: "Partial Database Connection",
+        title: "Database Connection Error",
         description:
-          "Orders are live from database. Some other data using fallbacks.",
-        variant: "default",
+          "Some data may not be available. Please check your connection.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -330,7 +246,7 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Products Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description: "Could not load products from database.",
         variant: "destructive",
       });
     }
@@ -339,7 +255,7 @@ const AdminDashboard = () => {
   const fetchOrders = async () => {
     try {
       // Fetch orders with order items and user profiles using join
-      const { data: ordersData, error: ordersError } = await supabase
+      let { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(
           `
@@ -389,6 +305,10 @@ const AdminDashboard = () => {
           has_profiles: !!ordersData[0].profiles,
           profiles_data: ordersData[0].profiles,
         });
+        console.log(
+          "All order user_ids:",
+          (ordersData || []).map((o) => ({ id: o.id, user_id: o.user_id })),
+        );
       }
 
       // Get unique user IDs from orders
@@ -405,17 +325,25 @@ const AdminDashboard = () => {
       // Fetch user profiles if we have user IDs
       if (userIds.length > 0) {
         try {
+          // Try multiple methods to get user profile data
+          console.log("Attempting to fetch profiles for:", userIds);
+
+          // Try direct profiles table query first
+          console.log("Attempting profiles table query for user IDs:", userIds);
           const { data: profiles, error: profilesError } = await supabase
             .from("profiles")
             .select("id, full_name, email")
             .in("id", userIds);
 
           if (profilesError) {
-            console.warn("Could not fetch user profiles:", profilesError);
-            // Try to fetch from auth.users as fallback
+            console.warn("Profiles table query failed:", profilesError);
+
+            // If profiles table fails, try auth.users as fallback
             try {
+              console.log("Trying auth.users as fallback...");
               const { data: authUsers, error: authError } =
                 await supabase.auth.admin.listUsers();
+
               if (!authError && authUsers?.users) {
                 profilesData = authUsers.users
                   .filter((user) => userIds.includes(user.id))
@@ -423,24 +351,47 @@ const AdminDashboard = () => {
                     id: user.id,
                     full_name:
                       user.user_metadata?.full_name ||
+                      user.user_metadata?.name ||
                       user.email?.split("@")[0] ||
                       "User",
                     email: user.email || "No email",
                   }));
                 console.log(
-                  "Using auth.users as fallback:",
+                  "Successfully fetched from auth.users:",
                   profilesData.length,
                 );
+              } else {
+                throw new Error("Auth users query also failed");
               }
-            } catch (authFallbackError) {
-              console.warn("Auth fallback also failed:", authFallbackError);
+            } catch (authError) {
+              console.warn("Auth.users fallback also failed:", authError);
+
+              // Final fallback - create basic profile data
+              profilesData = userIds.map((userId) => ({
+                id: userId,
+                full_name: `Customer ${userId.substring(0, 8)}`,
+                email: "Email not available",
+              }));
+              console.log(
+                "Using minimal fallback profile data:",
+                profilesData.length,
+              );
             }
           } else {
             profilesData = profiles || [];
-            console.log("Profiles fetched successfully:", profilesData.length);
+            console.log(
+              "Successfully fetched from profiles table:",
+              profilesData.length,
+            );
           }
-        } catch (profileError: any) {
-          console.warn("Error fetching profiles:", profileError);
+        } catch (error: any) {
+          console.warn("Error in profile fetching:", error);
+          // Final fallback - create minimal data
+          profilesData = userIds.map((userId) => ({
+            id: userId,
+            full_name: `User-${userId.substring(0, 8)}`,
+            email: `user-${userId.substring(0, 8)}@unknown.com`,
+          }));
         }
       }
 
@@ -466,22 +417,47 @@ const AdminDashboard = () => {
         const mappedProfile = profileMap[order.user_id];
         const profile = joinedProfile || mappedProfile;
 
+        console.log(`Processing order ${order.id}:`, {
+          user_id: order.user_id,
+          joinedProfile,
+          mappedProfile,
+          finalProfile: profile,
+        });
+
         let user_name, user_email;
 
-        if (profile && profile.email) {
-          // Use real user data when available
-          user_name = profile.full_name || profile.email.split("@")[0];
-          user_email = profile.email;
-          console.log(`Order ${order.id}: Real user ${profile.email} found`);
+        if (profile && profile.id) {
+          // Use profile data (either real or fallback)
+          if (
+            profile.email &&
+            profile.email !== "Email not available" &&
+            !profile.email.includes("@unknown.com")
+          ) {
+            // Real user data
+            user_name =
+              profile.full_name || profile.email.split("@")[0] || "User";
+            user_email = profile.email;
+            console.log(`Order ${order.id}: Real user ${profile.email} found`);
+          } else {
+            // Some profile data available but may be fallback
+            user_name =
+              profile.full_name || `Customer ${order.user_id?.substring(0, 8)}`;
+            user_email = profile.email || "Email not available";
+            console.log(`Order ${order.id}: Partial profile data found`);
+          }
         } else {
-          // Show order but indicate missing user data
-          user_name = `User ID: ${order.user_id?.substring(0, 8) || "Unknown"}`;
-          user_email = "Profile not found";
+          // No profile data at all
+          user_name = `Customer ${order.user_id?.substring(0, 8) || "Unknown"}`;
+          user_email = "Email not available";
           console.warn(
             `Order ${order.id}: No user profile found for user_id: ${order.user_id}`,
           );
         }
 
+        console.log(`Order ${order.id} final result:`, {
+          user_name,
+          user_email,
+        });
         return {
           ...order,
           user_name,
@@ -493,6 +469,17 @@ const AdminDashboard = () => {
 
       setOrders(transformedOrders);
       console.log("Orders fetched successfully:", transformedOrders.length);
+      console.log(
+        "Sample transformed order:",
+        transformedOrders[0]
+          ? {
+              id: transformedOrders[0].id,
+              user_id: transformedOrders[0].user_id,
+              user_name: transformedOrders[0].user_name,
+              user_email: transformedOrders[0].user_email,
+            }
+          : "No orders found",
+      );
     } catch (error: any) {
       console.error("Error fetching orders:", error.message || error);
       setOrders([]);
@@ -599,14 +586,12 @@ const AdminDashboard = () => {
     } catch (error: any) {
       console.error("Error fetching reviews:", error.message || error);
       setReviews([]);
-      // Show user-friendly error only for non-RLS errors
-      if (!error.message?.includes("infinite recursion")) {
-        toast({
-          title: "Reviews Load Error",
-          description: "Using demo data. Database connection may be limited.",
-          variant: "destructive",
-        });
-      }
+      // Show user-friendly error
+      toast({
+        title: "Reviews Load Error",
+        description: "Could not load reviews from database.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1056,8 +1041,7 @@ const AdminDashboard = () => {
       });
       toast({
         title: "Statistics Load Error",
-        description:
-          "Using demo statistics. Database connection may be limited.",
+        description: "Could not load statistics from database.",
         variant: "destructive",
       });
     }
@@ -1604,16 +1588,9 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
-            <Badge
-              variant="outline"
-              className={
-                dataLoaded
-                  ? "border-green-200 text-green-800"
-                  : "border-orange-200 text-orange-800"
-              }
-            >
+            <Badge variant="default" className="ml-2">
               <Clock className="h-3 w-3 mr-1" />
-              {dataLoaded ? "Live Data" : "Demo Data"}
+              Live Data
             </Badge>
             <Button variant="ghost" onClick={fetchData} size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />

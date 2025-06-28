@@ -109,9 +109,7 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch product data:", error);
         throw new Error("Database connection failed");
       }
 
@@ -149,35 +147,58 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setRevenueData(formattedData);
       console.log("Revenue data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo revenue data (database offline)");
-      // Use mock data as fallback
-      const mockData = Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(
-          Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        revenue: Math.floor(Math.random() * 2000) + 500,
-        orders: Math.floor(Math.random() * 50) + 10,
-        customers: Math.floor(Math.random() * 30) + 5,
-      }));
-      setRevenueData(mockData);
-      console.log("Using fallback revenue data");
+      console.error("Failed to fetch revenue data:", error);
+      setRevenueData([]);
     }
   };
 
   const fetchOrderData = async () => {
-    // Simulated order status data
-    const orderStatuses = [
-      { name: "Pending", value: 15, color: "#fbbf24" },
-      { name: "Confirmed", value: 25, color: "#3b82f6" },
-      { name: "Shipped", value: 35, color: "#8b5cf6" },
-      { name: "Delivered", value: 120, color: "#10b981" },
-      { name: "Cancelled", value: 5, color: "#ef4444" },
-    ];
+    try {
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select("status");
 
-    setOrderData(orderStatuses);
+      if (error) {
+        console.error("Failed to fetch order data:", error);
+        setOrderData([]);
+        return;
+      }
+
+      // Count orders by status
+      const statusCounts = (orders || []).reduce(
+        (acc, order) => {
+          acc[order.status] = (acc[order.status] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+      const orderStatuses = [
+        { name: "Pending", value: statusCounts.pending || 0, color: "#fbbf24" },
+        {
+          name: "Confirmed",
+          value: statusCounts.confirmed || 0,
+          color: "#3b82f6",
+        },
+        { name: "Shipped", value: statusCounts.shipped || 0, color: "#8b5cf6" },
+        {
+          name: "Delivered",
+          value: statusCounts.delivered || 0,
+          color: "#10b981",
+        },
+        {
+          name: "Cancelled",
+          value: statusCounts.cancelled || 0,
+          color: "#ef4444",
+        },
+      ];
+
+      setOrderData(orderStatuses);
+      console.log("Order status data fetched successfully");
+    } catch (error: any) {
+      console.error("Failed to fetch order data:", error);
+      setOrderData([]);
+    }
   };
 
   const fetchProductData = async () => {
@@ -189,16 +210,14 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .limit(10);
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch product data:", error);
         throw new Error("Database connection failed");
       }
 
       const formattedData = (data || []).map((product) => ({
         name: product.name.substring(0, 20) + "...",
-        sales: Math.floor(Math.random() * 500) + 100,
-        revenue: Math.floor(Math.random() * 5000) + 1000,
+        sales: 0, // Real sales data would come from order_items table
+        revenue: 0, // Real revenue data would come from order_items table
         rating: product.rating,
         reviews: product.review_count,
       }));
@@ -206,47 +225,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setProductData(formattedData);
       console.log("Product data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo product data (database offline)");
-      // Use fallback data
-      const fallbackData = [
-        {
-          name: "Premium Almonds...",
-          sales: 150,
-          revenue: 3500,
-          rating: 4.8,
-          reviews: 24,
-        },
-        {
-          name: "Organic Dates...",
-          sales: 120,
-          revenue: 2800,
-          rating: 4.6,
-          reviews: 18,
-        },
-        {
-          name: "Trail Mix Deluxe...",
-          sales: 95,
-          revenue: 2200,
-          rating: 4.7,
-          reviews: 15,
-        },
-        {
-          name: "Cashew Nuts...",
-          sales: 88,
-          revenue: 4100,
-          rating: 4.9,
-          reviews: 32,
-        },
-        {
-          name: "Dried Cranberries...",
-          sales: 75,
-          revenue: 1800,
-          rating: 4.4,
-          reviews: 12,
-        },
-      ];
-      setProductData(fallbackData);
-      console.log("Using fallback product data");
+      console.error("Failed to fetch product data:", error);
+      setProductData([]);
     }
   };
 
@@ -258,13 +238,11 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("category");
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch category data:", error);
         throw new Error("Database connection failed");
       }
 
-      // Count products per category and simulate sales data
+      // Count products per category
       const categoryCount = (data || []).reduce(
         (acc: Record<string, number>, product) => {
           acc[product.category] = (acc[product.category] || 0) + 1;
@@ -288,8 +266,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         ([category, count], index) => ({
           name: category,
           products: count,
-          sales: Math.floor(Math.random() * 1000) + 200,
-          revenue: Math.floor(Math.random() * 10000) + 2000,
+          sales: 0, // Real sales data would come from order analysis
+          revenue: 0, // Real revenue data would come from order analysis
           color: colors[index % colors.length],
         }),
       );
@@ -297,48 +275,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setCategoryData(formattedData);
       console.log("Category data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo category data (database offline)");
-      // Use fallback category data
-      const colors = ["#e8914c", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
-      const fallbackData = [
-        {
-          name: "Nuts",
-          products: 8,
-          sales: 450,
-          revenue: 8500,
-          color: colors[0],
-        },
-        {
-          name: "Dried Fruits",
-          products: 6,
-          sales: 320,
-          revenue: 6200,
-          color: colors[1],
-        },
-        {
-          name: "Seeds",
-          products: 4,
-          sales: 280,
-          revenue: 4800,
-          color: colors[2],
-        },
-        {
-          name: "Trail Mix",
-          products: 3,
-          sales: 210,
-          revenue: 3900,
-          color: colors[3],
-        },
-        {
-          name: "Dates",
-          products: 4,
-          sales: 190,
-          revenue: 3200,
-          color: colors[4],
-        },
-      ];
-      setCategoryData(fallbackData);
-      console.log("Using fallback category data");
+      console.error("Failed to fetch category data:", error);
+      setCategoryData([]);
     }
   };
 
@@ -372,41 +310,39 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       const totalRevenue =
         !ordersError && orders
           ? orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-          : 15420; // Fallback value
+          : 0;
 
-      const totalOrders = !ordersError && orders ? orders.length : 89; // Fallback value
-      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 173; // Fallback value
+      const totalOrders = !ordersError && orders ? orders.length : 0;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-      // Use actual customer count or fallback
-      const actualCustomerCount = !customerError ? customerCount || 0 : 156; // Fallback value
+      // Use actual customer count
+      const actualCustomerCount = !customerError ? customerCount || 0 : 0;
 
-      // Simulate growth percentages for demo
+      // Real growth calculations would require historical data comparison
       setStats({
         totalRevenue,
-        revenueGrowth: Math.floor(Math.random() * 30) + 5,
+        revenueGrowth: 0, // Real growth calculation would compare with previous period
         totalOrders,
-        orderGrowth: Math.floor(Math.random() * 20) + 3,
+        orderGrowth: 0, // Real growth calculation would compare with previous period
         avgOrderValue,
-        avgOrderGrowth: Math.floor(Math.random() * 15) + 2,
+        avgOrderGrowth: 0, // Real growth calculation would compare with previous period
         customerCount: actualCustomerCount,
-        customerGrowth: Math.floor(Math.random() * 25) + 8,
+        customerGrowth: 0, // Real growth calculation would compare with previous period
       });
 
       console.log("Analytics stats fetched successfully");
     } catch (error: any) {
       console.error("Error fetching analytics stats:", error.message || error);
-      // Use fallback stats for demo purposes
       setStats({
-        totalRevenue: 15420,
-        revenueGrowth: 12,
-        totalOrders: 89,
-        orderGrowth: 8,
-        avgOrderValue: 173,
-        avgOrderGrowth: 5,
-        customerCount: 156,
-        customerGrowth: 15,
+        totalRevenue: 0,
+        revenueGrowth: 0,
+        totalOrders: 0,
+        orderGrowth: 0,
+        avgOrderValue: 0,
+        avgOrderGrowth: 0,
+        customerCount: 0,
+        customerGrowth: 0,
       });
-      console.log("Using fallback analytics stats");
     }
   };
 

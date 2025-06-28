@@ -189,7 +189,9 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .limit(10);
 
       if (error) {
-        console.warn("Database unavailable, using demo product data");
+        console.warn(
+          "Database unavailable, using demo data for analytics visualization only",
+        );
         throw new Error("Database connection failed");
       }
 

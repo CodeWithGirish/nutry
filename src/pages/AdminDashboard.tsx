@@ -353,10 +353,13 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      // Fetch orders first
+      // Fetch orders with order items using join
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          order_items:order_items(*)
+        `)
         .order("created_at", { ascending: false });
 
       if (ordersError) {
@@ -406,11 +409,13 @@ const AdminDashboard = () => {
         {} as Record<string, any>,
       );
 
-      // Transform orders to include user info
+      // Transform orders to include user info and ensure order_items is available
       const transformedOrders = (ordersData || []).map((order) => ({
         ...order,
         user_name: profileMap[order.user_id]?.full_name || "Guest User",
         user_email: profileMap[order.user_id]?.email || "guest@example.com",
+        // Ensure order_items is always an array
+        order_items: order.order_items || [],
       }));
 
       setOrders(transformedOrders);
@@ -421,11 +426,11 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Orders Load Error",
-        description:
-          "Could not load orders from database. Please check your connection.",
+        description: "Could not load orders from database. Please check your connection.",
         variant: "destructive",
       });
     }
+  };
   };
 
   const fetchUsers = async () => {

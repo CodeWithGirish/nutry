@@ -144,40 +144,57 @@ export const sendOrderConfirmationEmail = async (
   try {
     const emailContent = emailTemplates.orderConfirmation({
       orderId,
-      customerName: orderData.shipping_address.fullName,
+      customerName:
+        orderData.shipping_address?.fullName ||
+        orderData.user_name ||
+        "Customer",
       orderDate: orderData.created_at,
       paymentMethod: orderData.payment_method,
       status: orderData.status,
-      items: orderData.items,
+      items: orderData.items || [],
       totalAmount: orderData.total_amount,
-      shippingAddress: orderData.shipping_address,
+      shippingAddress: orderData.shipping_address || {},
     });
 
-    // Store email notification in database
-    const { error } = await supabase.from("email_notifications").insert({
-      user_id: orderData.user_id,
-      order_id: orderId,
-      email_type: "order_confirmation",
-      recipient_email: userEmail,
-      subject: emailContent.subject,
-      content: emailContent.html,
-      status: "sent", // In production, this would be 'pending' until actually sent
-      sent_at: new Date().toISOString(),
-    });
+    // Try to log email notification to database, but don't fail if it doesn't work
+    try {
+      const { error } = await supabase.from("email_notifications").insert({
+        user_id: orderData.user_id,
+        order_id: orderId,
+        email_type: "order_confirmation",
+        recipient_email: userEmail,
+        subject: emailContent.subject,
+        content: emailContent.html,
+        status: "sent", // In production, this would be 'pending' until actually sent
+        sent_at: new Date().toISOString(),
+      });
 
-    if (error) throw error;
+      if (error) {
+        console.warn("Could not log email notification:", error.message);
+      }
+    } catch (dbError) {
+      console.warn("Email notification table not available, skipping logging");
+    }
 
     // In production, you would integrate with an email service like:
     // - SendGrid
     // - AWS SES
     // - Resend
     // - Mailgun
-    console.log("Email would be sent:", emailContent.subject, "to", userEmail);
+    console.log(
+      "Email notification prepared:",
+      emailContent.subject,
+      "for",
+      userEmail,
+    );
 
     return { success: true };
   } catch (error) {
-    console.error("Error sending email:", error);
-    return { success: false, error };
+    console.warn(
+      "Email notification failed:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return { success: false, error: "Email notification unavailable" };
   }
 };
 

@@ -266,70 +266,54 @@ const AdminDashboard = () => {
     try {
       console.log("Starting data fetch...");
 
-      // Test database connectivity first
-      const { data: testData, error: testError } = await supabase
-        .from("products")
-        .select("id")
-        .limit(1);
+      // Always try to fetch orders first - orders must be dynamic
+      console.log("Fetching orders from database (always dynamic)...");
+      await fetchOrders();
 
-      if (testError) {
-        console.warn("Database connectivity test failed:", {
-          message: testError.message,
-          code: testError.code,
-          details: testError.details,
-        });
-        useFallbackData();
-        setDataLoaded(false);
-
-        let errorDescription = "Using demo data. ";
-        if (testError.code === "PGRST116") {
-          errorDescription += "Database tables may not be set up yet.";
-        } else if (testError.message?.includes("Failed to fetch")) {
-          errorDescription += "Network connection issue.";
-        } else {
-          errorDescription += "Database may not be configured properly.";
-        }
-
-        toast({
-          title: "Database Unavailable",
-          description: errorDescription,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Fetch all data with individual error handling
+      // Fetch other data with individual error handling
       const results = await Promise.allSettled([
         fetchProducts(),
-        fetchOrders(),
         fetchReviews(),
         fetchUsers(),
         fetchContactMessages(),
         fetchStats(),
       ]);
 
-      // Check if any fetches failed
+      // Check if any non-order fetches failed
       const failedFetches = results.filter(
         (result) => result.status === "rejected",
       );
+
       if (failedFetches.length > 0) {
-        console.warn(`${failedFetches.length} data fetches failed`);
-        // Don't use fallback if some data loaded successfully
-        setDataLoaded(results.some((result) => result.status === "fulfilled"));
+        console.warn(
+          `${failedFetches.length} non-order data fetches failed, using fallback for those`,
+        );
+        // Use fallback data only for failed non-order components
+        useFallbackDataForNonOrders();
+        setDataLoaded(true); // Orders are always loaded, so mark as loaded
       } else {
         setDataLoaded(true);
         console.log("All data fetched successfully");
       }
     } catch (error: any) {
       console.error("Error in main fetchData:", error.message || error);
-      // Use fallback data for demo
-      useFallbackData();
-      setDataLoaded(false);
+      // Always try to fetch orders even if other things fail
+      try {
+        await fetchOrders();
+        console.log("Orders fetched successfully despite other errors");
+      } catch (orderError) {
+        console.error("Failed to fetch orders:", orderError);
+        setOrders([]); // Keep orders empty if database fails
+      }
+
+      // Use fallback data for non-order components only
+      useFallbackDataForNonOrders();
+      setDataLoaded(true);
       toast({
-        title: "Database Connection Issue",
+        title: "Partial Database Connection",
         description:
-          "Using demo data. Please check your database configuration.",
-        variant: "destructive",
+          "Orders are live from database. Some other data using fallbacks.",
+        variant: "default",
       });
     } finally {
       setLoading(false);

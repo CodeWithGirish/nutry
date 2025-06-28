@@ -209,14 +209,12 @@ const AdminDashboard = () => {
         setOrders([]); // Keep orders empty if database fails
       }
 
-      // Use fallback data for non-order components only
-      useFallbackDataForNonOrders();
       setDataLoaded(true);
       toast({
-        title: "Partial Database Connection",
+        title: "Database Connection Error",
         description:
-          "Orders are live from database. Some other data using fallbacks.",
-        variant: "default",
+          "Some data may not be available. Please check your connection.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -1876,7 +1874,7 @@ const AdminDashboard = () => {
                             setNewProduct({
                               ...newProduct,
                               images,
-                              image_url: images[0] || "����",
+                              image_url: images[0] || "🥜",
                             })
                           }
                           existingImages={newProduct.images}

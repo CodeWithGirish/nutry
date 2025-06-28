@@ -95,13 +95,10 @@ const Products = () => {
 
         // Use fallback products if it's a database connection error
         if (isDatabaseError(error)) {
-          console.log(
-            "Using fallback products due to database connection error",
-          );
-          setProducts(mockProducts);
-          generateCategories(mockProducts);
-          setIsDemoMode(true);
-          setError(""); // Clear error since we have fallback data
+          console.log("Database connection error, unable to load products");
+          setProducts([]);
+          generateCategories([]);
+          setError("Unable to connect to database. Please try again later.");
           return;
         }
 

@@ -254,10 +254,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("category");
 
       if (error) {
-        console.error("Supabase error fetching category data:", error);
-        throw new Error(
-          `Failed to fetch category data: ${error.message || JSON.stringify(error)}`,
-        );
+        console.warn("Database unavailable, using demo category data");
+        throw new Error("Database connection failed");
       }
 
       // Count products per category and simulate sales data

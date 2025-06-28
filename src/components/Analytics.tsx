@@ -109,9 +109,7 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch product data:", error);
         throw new Error("Database connection failed");
       }
 

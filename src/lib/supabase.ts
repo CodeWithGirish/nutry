@@ -1,6 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://truzxbzzgmfrifiygmgr.supabase.co";
+// Use proxy in development, direct URL in production
+const isDevelopment = import.meta.env.DEV;
+const supabaseUrl = isDevelopment
+  ? `${window.location.origin}/supabase`
+  : "https://truzxbzzgmfrifiygmgr.supabase.co";
+
 const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXp4Ynp6Z21mcmlmaXlnbWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDQ3ODQsImV4cCI6MjA2NjI4MDc4NH0.ec8oCrlnkWOy96uKt9Z_JctKoOwX81z_gO6U3kuIRbc";
 

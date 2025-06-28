@@ -17,27 +17,6 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-const DEMO_CREDENTIALS = [
-  {
-    email: "admin@nutrivault.com",
-    password: "Admin123!@#",
-    name: "Admin User",
-    role: "admin",
-  },
-  {
-    email: "superadmin@nutrivault.com",
-    password: "SuperAdmin123!@#",
-    name: "Super Admin",
-    role: "super_admin",
-  },
-  {
-    email: "demo@nutrivault.com",
-    password: "Demo123!@#",
-    name: "Demo Admin",
-    role: "admin",
-  },
-];
-
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

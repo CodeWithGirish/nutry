@@ -123,10 +123,9 @@ const Products = () => {
 
       // Use fallback products if it's a database connection error
       if (isDatabaseError(error)) {
-        console.log("Using fallback products due to network error");
-        setProducts(mockProducts);
-        generateCategories(mockProducts);
-        setIsDemoMode(true);
+        setProducts([]);
+        generateCategories([]);
+        setError("Unable to connect to database. Please try again later.");
         setError(""); // Clear error since we have fallback data
       } else if (error instanceof Error && error.message.includes("timeout")) {
         setError(

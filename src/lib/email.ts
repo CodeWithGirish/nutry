@@ -28,12 +28,12 @@ export const emailTemplates = {
               <h1>🥜 NutriVault</h1>
               <h2>Order Confirmation</h2>
             </div>
-            
+
             <div class="content">
               <h3>Thank you for your order!</h3>
               <p>Hi ${orderDetails.customerName},</p>
               <p>We've received your order and it's being processed. Here are the details:</p>
-              
+
               <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
                 <strong>Order #:</strong> ${orderDetails.orderId}<br>
                 <strong>Order Date:</strong> ${new Date(orderDetails.orderDate).toLocaleDateString()}<br>
@@ -107,11 +107,11 @@ export const emailTemplates = {
               <h1>🥜 NutriVault</h1>
               <h2>🚚 Your Order Has Shipped!</h2>
             </div>
-            
+
             <div class="content">
               <p>Hi ${orderDetails.customerName},</p>
               <p>Great news! Your order has been shipped and is on its way to you.</p>
-              
+
               <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
                 <strong>Order #:</strong> ${orderDetails.orderId}<br>
                 <strong>Tracking Number:</strong> ${orderDetails.trackingNumber}<br>
@@ -189,29 +189,45 @@ export const sendOrderShippedEmail = async (
   try {
     const emailContent = emailTemplates.orderShipped({
       orderId,
-      customerName: orderData.shipping_address.fullName,
+      customerName:
+        orderData.shipping_address?.fullName ||
+        orderData.user_name ||
+        "Customer",
       trackingNumber: orderData.tracking_number || "TRK123456789",
       estimatedDelivery: orderData.estimated_delivery || "2-3 business days",
     });
 
-    const { error } = await supabase.from("email_notifications").insert({
-      user_id: orderData.user_id,
-      order_id: orderId,
-      email_type: "order_shipped",
-      recipient_email: userEmail,
-      subject: emailContent.subject,
-      content: emailContent.html,
-      status: "sent",
-      sent_at: new Date().toISOString(),
-    });
+    // Try to log email notification to database, but don't fail if it doesn't work
+    try {
+      const { error } = await supabase.from("email_notifications").insert({
+        user_id: orderData.user_id,
+        order_id: orderId,
+        email_type: "order_shipped",
+        recipient_email: userEmail,
+        subject: emailContent.subject,
+        content: emailContent.html,
+        status: "sent",
+        sent_at: new Date().toISOString(),
+      });
 
-    if (error) throw error;
+      if (error) {
+        console.warn("Could not log email notification:", error.message);
+      }
+    } catch (dbError) {
+      console.warn("Email notification table not available, skipping logging");
+    }
 
-    console.log("Shipped email would be sent:", emailContent.subject);
+    console.log(
+      "Shipped email notification prepared for:",
+      emailContent.subject,
+    );
     return { success: true };
   } catch (error) {
-    console.error("Error sending shipped email:", error);
-    return { success: false, error };
+    console.warn(
+      "Email notification failed:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return { success: false, error: "Email notification unavailable" };
   }
 };
 

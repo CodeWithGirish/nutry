@@ -193,15 +193,11 @@ const AdminDashboard = () => {
 
       if (failedFetches.length > 0) {
         console.warn(
-          `${failedFetches.length} non-order data fetches failed, using fallback for those`,
+          `${failedFetches.length} data fetches failed, continuing with available data`,
         );
-        // Use fallback data only for failed non-order components
-        useFallbackDataForNonOrders();
-        setDataLoaded(true); // Orders are always loaded, so mark as loaded
-      } else {
-        setDataLoaded(true);
-        console.log("All data fetched successfully");
       }
+      setDataLoaded(true);
+      console.log("Data fetch completed");
     } catch (error: any) {
       console.error("Error in main fetchData:", error.message || error);
       // Always try to fetch orders even if other things fail
@@ -1880,7 +1876,7 @@ const AdminDashboard = () => {
                             setNewProduct({
                               ...newProduct,
                               images,
-                              image_url: images[0] || "🥜",
+                              image_url: images[0] || "����",
                             })
                           }
                           existingImages={newProduct.images}

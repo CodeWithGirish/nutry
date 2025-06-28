@@ -7,12 +7,21 @@ const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXp4Ynp6Z21mcmlmaXlnbWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDQ3ODQsImV4cCI6MjA2NjI4MDc4NH0.ec8oCrlnkWOy96uKt9Z_JctKoOwX81z_gO6U3kuIRbc";
 
 console.log("Supabase configuration:", {
-  isDevelopment,
   supabaseUrl,
   mode: import.meta.env.MODE,
 });
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+});
 
 // Create an admin client for bypassing RLS when needed
 // Note: In production, you should use service role key only on server side

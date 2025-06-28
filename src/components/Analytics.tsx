@@ -240,13 +240,11 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("category");
 
       if (error) {
-        console.warn(
-          "Database unavailable, using demo data for analytics visualization only",
-        );
+        console.error("Failed to fetch category data:", error);
         throw new Error("Database connection failed");
       }
 
-      // Count products per category and simulate sales data
+      // Count products per category
       const categoryCount = (data || []).reduce(
         (acc: Record<string, number>, product) => {
           acc[product.category] = (acc[product.category] || 0) + 1;
@@ -270,8 +268,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         ([category, count], index) => ({
           name: category,
           products: count,
-          sales: Math.floor(Math.random() * 1000) + 200,
-          revenue: Math.floor(Math.random() * 10000) + 2000,
+          sales: 0, // Real sales data would come from order analysis
+          revenue: 0, // Real revenue data would come from order analysis
           color: colors[index % colors.length],
         }),
       );

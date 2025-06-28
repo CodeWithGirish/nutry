@@ -1596,7 +1596,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -1607,7 +1607,12 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="orders">
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Orders ({orders.length})
+              Orders (
+              {orders.filter((order) => order.payment_method !== "cod").length})
+            </TabsTrigger>
+            <TabsTrigger value="cod-orders">
+              <CreditCard className="h-4 w-4 mr-2" />
+              COD Orders ({getCodOrders().length})
             </TabsTrigger>
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />

@@ -1246,7 +1246,23 @@ const AdminDashboard = () => {
       if (newStatus === "shipped") {
         const order = orders.find((o) => o.id === orderId);
         if (order) {
-          await sendOrderShippedEmail(orderId, order.user_email, order);
+          try {
+            const emailResult = await sendOrderShippedEmail(
+              orderId,
+              order.user_email,
+              order,
+            );
+            if (!emailResult.success) {
+              console.warn(
+                "Email notification failed but order status updated successfully",
+              );
+            }
+          } catch (emailError) {
+            console.warn(
+              "Email notification error (non-critical):",
+              emailError,
+            );
+          }
         }
       }
 

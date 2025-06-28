@@ -19,7 +19,7 @@ import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("admin@nutryhaven.com");
-  const [password, setPassword] = useState("123456");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loginAttempts, setLoginAttempts] = useState(0);

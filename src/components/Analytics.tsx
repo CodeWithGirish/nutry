@@ -258,7 +258,9 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("category");
 
       if (error) {
-        console.warn("Database unavailable, using demo category data");
+        console.warn(
+          "Database unavailable, using demo data for analytics visualization only",
+        );
         throw new Error("Database connection failed");
       }
 

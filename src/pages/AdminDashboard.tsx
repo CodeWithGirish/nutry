@@ -423,11 +423,11 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Orders Load Error",
-        description: "Could not load orders from database. Please check your connection.",
+        description:
+          "Could not load orders from database. Please check your connection.",
         variant: "destructive",
       });
     }
-  };
   };
 
   const fetchUsers = async () => {

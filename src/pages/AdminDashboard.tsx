@@ -246,7 +246,7 @@ const AdminDashboard = () => {
       // Show user-friendly error
       toast({
         title: "Products Load Error",
-        description: "Using demo data. Database connection may be limited.",
+        description: "Could not load products from database.",
         variant: "destructive",
       });
     }

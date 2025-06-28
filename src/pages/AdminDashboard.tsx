@@ -1280,7 +1280,7 @@ const AdminDashboard = () => {
         "Payment Method",
         "Date",
       ],
-      ...orders.map((order) => [
+      ...getFilteredOrders().map((order) => [
         order.id,
         order.user_name || "N/A",
         order.user_email || "N/A",
@@ -1298,6 +1298,39 @@ const AdminDashboard = () => {
     const a = document.createElement("a");
     a.href = url;
     a.download = "orders.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportCodOrdersToCSV = () => {
+    const csvContent = [
+      [
+        "Order ID",
+        "Customer",
+        "Email",
+        "Total",
+        "Status",
+        "Payment Status",
+        "Date",
+      ],
+      ...getFilteredCodOrders().map((order) => [
+        order.id,
+        order.user_name || "N/A",
+        order.user_email || "N/A",
+        order.total_amount,
+        order.status,
+        order.payment_status === "paid" ? "Collected" : "Pending Collection",
+        new Date(order.created_at).toLocaleDateString(),
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cod-orders.csv";
     a.click();
     window.URL.revokeObjectURL(url);
   };

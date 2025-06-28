@@ -168,6 +168,8 @@ const AdminDashboard = () => {
     }
   }, [timeRange]);
 
+
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -575,12 +577,12 @@ const AdminDashboard = () => {
     } catch (error: any) {
       console.error("Error fetching reviews:", error.message || error);
       setReviews([]);
-      // Show user-friendly error only for non-RLS errors
-      if (!error.message?.includes("infinite recursion")) {
-        toast({
-          title: "Reviews Load Error",
-          description: "Using demo data. Database connection may be limited.",
-          variant: "destructive",
+      // Show user-friendly error
+      toast({
+        title: "Reviews Load Error",
+        description: "Could not load reviews from database.",
+        variant: "destructive",
+      });
         });
       }
     }

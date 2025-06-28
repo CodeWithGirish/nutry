@@ -227,47 +227,8 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
       setProductData(formattedData);
       console.log("Product data fetched successfully:", formattedData.length);
     } catch (error: any) {
-      console.log("Using demo product data (database offline)");
-      // Use fallback data
-      const fallbackData = [
-        {
-          name: "Premium Almonds...",
-          sales: 150,
-          revenue: 3500,
-          rating: 4.8,
-          reviews: 24,
-        },
-        {
-          name: "Organic Dates...",
-          sales: 120,
-          revenue: 2800,
-          rating: 4.6,
-          reviews: 18,
-        },
-        {
-          name: "Trail Mix Deluxe...",
-          sales: 95,
-          revenue: 2200,
-          rating: 4.7,
-          reviews: 15,
-        },
-        {
-          name: "Cashew Nuts...",
-          sales: 88,
-          revenue: 4100,
-          rating: 4.9,
-          reviews: 32,
-        },
-        {
-          name: "Dried Cranberries...",
-          sales: 75,
-          revenue: 1800,
-          rating: 4.4,
-          reviews: 12,
-        },
-      ];
-      setProductData(fallbackData);
-      console.log("Using fallback product data");
+      console.error("Failed to fetch product data:", error);
+      setProductData([]);
     }
   };
 

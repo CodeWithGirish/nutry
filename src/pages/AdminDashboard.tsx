@@ -328,72 +328,61 @@ const AdminDashboard = () => {
           // Try multiple methods to get user profile data
           console.log("Attempting to fetch profiles for:", userIds);
 
-          // Method 1: Try auth.users first (most reliable for admin access)
-          try {
-            const { data: authUsers, error: authError } =
-              await supabase.auth.admin.listUsers();
+          // Try direct profiles table query first
+          console.log("Attempting profiles table query for user IDs:", userIds);
+          const { data: profiles, error: profilesError } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", userIds);
 
-            if (!authError && authUsers?.users) {
-              profilesData = authUsers.users
-                .filter((user) => userIds.includes(user.id))
-                .map((user) => ({
-                  id: user.id,
-                  full_name:
-                    user.user_metadata?.full_name ||
-                    user.user_metadata?.name ||
-                    user.email?.split("@")[0] ||
-                    "User",
-                  email: user.email || "No email",
-                }));
-              console.log(
-                "Successfully fetched from auth.users:",
-                profilesData.length,
-              );
-            } else {
-              console.warn("Auth.users failed:", authError);
-              throw new Error("Auth users query failed");
-            }
-          } catch (authError) {
-            console.warn("Could not fetch from auth.users:", authError);
+          if (profilesError) {
+            console.warn("Profiles table query failed:", profilesError);
 
-            // Method 2: Try profiles table with RLS bypass
+            // If profiles table fails, try auth.users as fallback
             try {
-              // Use a direct query that might bypass RLS
-              const { data: profiles, error: profilesError } = await supabase
-                .rpc("get_user_profiles_admin", { user_ids: userIds })
-                .then((result) => {
-                  if (result.error) throw result.error;
-                  return result;
-                })
-                .catch(async () => {
-                  // If RPC doesn't exist, fall back to direct query
-                  return await supabase
-                    .from("profiles")
-                    .select("id, full_name, email")
-                    .in("id", userIds);
-                });
+              console.log("Trying auth.users as fallback...");
+              const { data: authUsers, error: authError } =
+                await supabase.auth.admin.listUsers();
 
-              if (profilesError) {
-                console.warn("Profiles table query failed:", profilesError);
-                throw profilesError;
+              if (!authError && authUsers?.users) {
+                profilesData = authUsers.users
+                  .filter((user) => userIds.includes(user.id))
+                  .map((user) => ({
+                    id: user.id,
+                    full_name:
+                      user.user_metadata?.full_name ||
+                      user.user_metadata?.name ||
+                      user.email?.split("@")[0] ||
+                      "User",
+                    email: user.email || "No email",
+                  }));
+                console.log(
+                  "Successfully fetched from auth.users:",
+                  profilesData.length,
+                );
+              } else {
+                throw new Error("Auth users query also failed");
               }
+            } catch (authError) {
+              console.warn("Auth.users fallback also failed:", authError);
 
-              profilesData = profiles || [];
-              console.log("Fetched from profiles table:", profilesData.length);
-            } catch (profilesError) {
-              console.warn(
-                "All profile fetching methods failed:",
-                profilesError,
-              );
-
-              // Method 3: Create minimal profile data from user IDs
+              // Final fallback - create basic profile data
               profilesData = userIds.map((userId) => ({
                 id: userId,
-                full_name: `User-${userId.substring(0, 8)}`,
-                email: `user-${userId.substring(0, 8)}@unknown.com`,
+                full_name: `Customer ${userId.substring(0, 8)}`,
+                email: "Email not available",
               }));
-              console.log("Using fallback profile data:", profilesData.length);
+              console.log(
+                "Using minimal fallback profile data:",
+                profilesData.length,
+              );
             }
+          } else {
+            profilesData = profiles || [];
+            console.log(
+              "Successfully fetched from profiles table:",
+              profilesData.length,
+            );
           }
         } catch (error: any) {
           console.warn("Error in profile fetching:", error);

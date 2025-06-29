@@ -1916,7 +1916,10 @@ const AdminDashboard = () => {
                 }
                 )
               </TabsTrigger>
-              <TabsTrigger value="cod-orders">
+              <TabsTrigger
+                value="cod-orders"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <CreditCard className="h-4 w-4 mr-2" />
                 COD Orders (
                 {
@@ -1928,20 +1931,32 @@ const AdminDashboard = () => {
                 }
                 )
               </TabsTrigger>
-              <TabsTrigger value="users">
+              <TabsTrigger
+                value="users"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Users ({users.length})
               </TabsTrigger>
-              <TabsTrigger value="reviews">
+              <TabsTrigger
+                value="reviews"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <Star className="h-4 w-4 mr-2" />
                 Reviews ({reviews.length})
               </TabsTrigger>
-              <TabsTrigger value="order-history">
+              <TabsTrigger
+                value="order-history"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Order History (
                 {orders.filter((order) => order.status === "delivered").length})
               </TabsTrigger>
-              <TabsTrigger value="settings">
+              <TabsTrigger
+                value="settings"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </TabsTrigger>

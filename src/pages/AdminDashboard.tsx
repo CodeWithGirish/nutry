@@ -1887,56 +1887,57 @@ const AdminDashboard = () => {
         <Tabs defaultValue="analytics" className="space-y-6">
           <div className="w-full overflow-x-auto">
             <TabsList className="flex w-max min-w-full gap-2 p-1">
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="products">
-              <Package className="h-4 w-4 mr-2" />
-              Products ({products.length})
-            </TabsTrigger>
-            <TabsTrigger value="orders">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Orders (
-              {
-                orders.filter(
-                  (order) =>
-                    order.payment_method !== "cod" &&
-                    order.status !== "delivered",
-                ).length
-              }
-              )
-            </TabsTrigger>
-            <TabsTrigger value="cod-orders">
-              <CreditCard className="h-4 w-4 mr-2" />
-              COD Orders (
-              {
-                orders.filter(
-                  (order) =>
-                    order.payment_method === "cod" &&
-                    order.status !== "delivered",
-                ).length
-              }
-              )
-            </TabsTrigger>
-            <TabsTrigger value="users">
-              <Users className="h-4 w-4 mr-2" />
-              Users ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Star className="h-4 w-4 mr-2" />
-              Reviews ({reviews.length})
-            </TabsTrigger>
-            <TabsTrigger value="order-history">
-              <FileText className="h-4 w-4 mr-2" />
-              Order History (
-              {orders.filter((order) => order.status === "delivered").length})
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="products">
+                <Package className="h-4 w-4 mr-2" />
+                Products ({products.length})
+              </TabsTrigger>
+              <TabsTrigger value="orders">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Orders (
+                {
+                  orders.filter(
+                    (order) =>
+                      order.payment_method !== "cod" &&
+                      order.status !== "delivered",
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger value="cod-orders">
+                <CreditCard className="h-4 w-4 mr-2" />
+                COD Orders (
+                {
+                  orders.filter(
+                    (order) =>
+                      order.payment_method === "cod" &&
+                      order.status !== "delivered",
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger value="users">
+                <Users className="h-4 w-4 mr-2" />
+                Users ({users.length})
+              </TabsTrigger>
+              <TabsTrigger value="reviews">
+                <Star className="h-4 w-4 mr-2" />
+                Reviews ({reviews.length})
+              </TabsTrigger>
+              <TabsTrigger value="order-history">
+                <FileText className="h-4 w-4 mr-2" />
+                Order History (
+                {orders.filter((order) => order.status === "delivered").length})
+              </TabsTrigger>
+              <TabsTrigger value="settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">

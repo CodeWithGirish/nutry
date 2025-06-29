@@ -126,6 +126,12 @@ const AdminDashboard = () => {
   const [orderEndDate, setOrderEndDate] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
 
+  // Auto refresh states
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
+
   // Stats
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -160,6 +166,36 @@ const AdminDashboard = () => {
     // Just fetch data when component mounts
     fetchData();
   }, []);
+
+  // Auto refresh functionality
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (autoRefresh && refreshInterval > 0) {
+      interval = setInterval(async () => {
+        setIsAutoRefreshing(true);
+        try {
+          // Only refresh orders and stats for better performance
+          await Promise.allSettled([
+            fetchOrders(),
+            fetchStats(),
+            fetchContactMessages(),
+          ]);
+          setLastRefresh(new Date());
+        } catch (error) {
+          console.error("Auto refresh failed:", error);
+        } finally {
+          setIsAutoRefreshing(false);
+        }
+      }, refreshInterval);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [autoRefresh, refreshInterval]);
 
   // Refresh stats when time range changes
   useEffect(() => {

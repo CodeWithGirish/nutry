@@ -1624,13 +1624,69 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
-            <Badge variant="default" className="ml-2">
-              <Clock className="h-3 w-3 mr-1" />
-              Live Data
-            </Badge>
-            <Button variant="ghost" onClick={fetchData} size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={autoRefresh ? "default" : "secondary"}
+                className="ml-2"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                {autoRefresh ? "Auto Refresh" : "Manual"}
+                {isAutoRefreshing && (
+                  <RefreshCw className="h-3 w-3 ml-1 animate-spin" />
+                )}
+              </Badge>
+              {lastRefresh && (
+                <span className="text-xs text-gray-500">
+                  {lastRefresh.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <Select
+              value={refreshInterval.toString()}
+              onValueChange={(value) => setRefreshInterval(parseInt(value))}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10000">10s</SelectItem>
+                <SelectItem value="30000">30s</SelectItem>
+                <SelectItem value="60000">1m</SelectItem>
+                <SelectItem value="300000">5m</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant={autoRefresh ? "default" : "outline"}
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              size="sm"
+            >
+              {autoRefresh ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Auto On
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Auto Off
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                fetchData();
+                setLastRefresh(new Date());
+              }}
+              size="sm"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Manual
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />

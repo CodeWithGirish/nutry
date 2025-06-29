@@ -1864,7 +1864,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -1889,6 +1889,11 @@ const AdminDashboard = () => {
             <TabsTrigger value="reviews">
               <Star className="h-4 w-4 mr-2" />
               Reviews ({reviews.length})
+            </TabsTrigger>
+            <TabsTrigger value="order-history">
+              <FileText className="h-4 w-4 mr-2" />
+              Order History (
+              {orders.filter((order) => order.status === "delivered").length})
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />

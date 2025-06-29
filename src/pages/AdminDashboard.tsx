@@ -772,7 +772,9 @@ const AdminDashboard = () => {
 
   // Filter orders by payment method
   const getCodOrders = () => {
-    return orders.filter((order) => order.payment_method === "cod");
+    return orders.filter(
+      (order) => order.payment_method === "cod" && order.status !== "delivered",
+    );
   };
 
   // Filter COD orders with search and filter criteria
@@ -1889,7 +1891,15 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="cod-orders">
               <CreditCard className="h-4 w-4 mr-2" />
-              COD Orders ({getCodOrders().length})
+              COD Orders (
+              {
+                orders.filter(
+                  (order) =>
+                    order.payment_method === "cod" &&
+                    order.status !== "delivered",
+                ).length
+              }
+              )
             </TabsTrigger>
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />

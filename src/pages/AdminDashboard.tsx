@@ -3400,7 +3400,7 @@ const AdminDashboard = () => {
                         .map((order) => (
                           <TableRow key={order.id}>
                             <TableCell className="font-medium">
-                              {formatOrderId(order.id)}
+                              {order.id ? formatOrderId(order) : "N/A"}
                             </TableCell>
                             <TableCell>
                               <div>

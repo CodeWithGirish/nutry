@@ -311,7 +311,14 @@ const AdminDashboard = () => {
           message: ordersError.message,
           code: ordersError.code,
           details: ordersError.details,
+          hint: ordersError.hint,
+          status: ordersError.status,
+          full_error: ordersError,
         });
+        console.error(
+          "Full ordersError object:",
+          JSON.stringify(ordersError, null, 2),
+        );
 
         // If the JOIN failed, try without profile join as fallback
         console.warn("Trying to fetch orders without profile join...");

@@ -86,6 +86,11 @@ export function formatOrderId(orderData: {
   id: string;
   order_number?: string;
 }): string {
+  // Defensive check for undefined/null orderData
+  if (!orderData || !orderData.id) {
+    return "N/A";
+  }
+
   // If we have an order_number, use it (this is the primary format)
   if (orderData.order_number) {
     return orderData.order_number;

@@ -128,14 +128,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       setCartItems(validCartItems);
     } catch (error: any) {
-      console.error("Error fetching cart items:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        status: error.status,
-        full_error: error,
+      console.error("Error fetching cart items - Details:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        status: error?.status,
       });
+      console.error("Error fetching cart items - Full error object:", error);
+      console.error(
+        "Error fetching cart items - Stringified:",
+        JSON.stringify(error, null, 2),
+      );
 
       if (
         isDatabaseError(error) ||
@@ -336,7 +340,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
     } catch (error: any) {
-      console.error("Error adding to cart:", error.message || error);
+      console.error("Error adding to cart:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
 
       // Handle specific constraint violation errors
       if (error.code === "23505" || error.message.includes("duplicate key")) {
@@ -439,7 +449,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Item has been removed from your cart",
       });
     } catch (error: any) {
-      console.error("Error removing from cart:", error.message || error);
+      console.error("Error removing from cart:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
 
       if (isDatabaseError(error)) {
         // If database is unavailable, remove from local state
@@ -598,7 +614,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         description: "All items have been removed from your cart",
       });
     } catch (error: any) {
-      console.error("Error clearing cart:", error.message || error);
+      console.error("Error clearing cart:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
 
       if (isDatabaseError(error)) {
         // If database is unavailable, clear local state

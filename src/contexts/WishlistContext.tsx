@@ -99,14 +99,18 @@ export const WishlistProvider = ({
 
       setWishlistItems(enrichedItems);
     } catch (error: any) {
-      console.error("Error loading wishlist:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        status: error.status,
-        full_error: error,
+      console.error("Error loading wishlist - Details:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        status: error?.status,
       });
+      console.error("Error loading wishlist - Full error object:", error);
+      console.error(
+        "Error loading wishlist - Stringified:",
+        JSON.stringify(error, null, 2),
+      );
 
       if (
         isDatabaseError(error) ||
@@ -142,7 +146,7 @@ export const WishlistProvider = ({
         setWishlistItems(JSON.parse(localWishlist));
       }
     } catch (error: any) {
-      console.error("Error loading local wishlist:", error.message || error);
+      console.error("Error loading local wishlist:", error?.message || error);
     }
   };
 
@@ -150,7 +154,7 @@ export const WishlistProvider = ({
     try {
       localStorage.setItem("nutrivault_wishlist", JSON.stringify(items));
     } catch (error: any) {
-      console.error("Error saving local wishlist:", error.message || error);
+      console.error("Error saving local wishlist:", error?.message || error);
     }
   };
 
@@ -213,7 +217,13 @@ export const WishlistProvider = ({
         description: `${productName} has been added to your wishlist`,
       });
     } catch (error: any) {
-      console.error("Error adding to wishlist:", error.message || error);
+      console.error("Error adding to wishlist:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
 
       if (isDatabaseError(error)) {
         // If database is unavailable, save to localStorage only
@@ -264,7 +274,13 @@ export const WishlistProvider = ({
         description: "Item has been removed from your wishlist",
       });
     } catch (error: any) {
-      console.error("Error removing from wishlist:", error.message || error);
+      console.error("Error removing from wishlist:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
 
       if (isDatabaseError(error)) {
         // If database is unavailable, remove from localStorage only
@@ -315,7 +331,13 @@ export const WishlistProvider = ({
         description: "All items have been removed from your wishlist",
       });
     } catch (error: any) {
-      console.error("Error clearing wishlist:", error.message || error);
+      console.error("Error clearing wishlist:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error,
+      });
       toast({
         title: "Error",
         description: "Failed to clear wishlist",

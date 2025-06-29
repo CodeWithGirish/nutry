@@ -4,7 +4,7 @@ import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
 import MultiImageUpload from "@/components/MultiImageUpload";
 import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
-import DatabaseDebug from "@/components/DatabaseDebug";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -126,6 +126,12 @@ const AdminDashboard = () => {
   const [orderEndDate, setOrderEndDate] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
 
+  // Auto refresh states
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
+
   // Stats
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -160,6 +166,36 @@ const AdminDashboard = () => {
     // Just fetch data when component mounts
     fetchData();
   }, []);
+
+  // Auto refresh functionality
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (autoRefresh && refreshInterval > 0) {
+      interval = setInterval(async () => {
+        setIsAutoRefreshing(true);
+        try {
+          // Only refresh orders and stats for better performance
+          await Promise.allSettled([
+            fetchOrders(),
+            fetchStats(),
+            fetchContactMessages(),
+          ]);
+          setLastRefresh(new Date());
+        } catch (error) {
+          console.error("Auto refresh failed:", error);
+        } finally {
+          setIsAutoRefreshing(false);
+        }
+      }, refreshInterval);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [autoRefresh, refreshInterval]);
 
   // Refresh stats when time range changes
   useEffect(() => {
@@ -254,8 +290,30 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      // Fetch orders with order items and user profiles using join
+      console.log("Starting fetchOrders...");
+
+      // Try simple orders fetch first to check if table exists
       let { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (ordersError) {
+        console.error("Basic orders fetch failed:", {
+          message: ordersError.message,
+          code: ordersError.code,
+          details: ordersError.details,
+          hint: ordersError.hint,
+          status: ordersError.status,
+        });
+        throw new Error(`Orders table access failed: ${ordersError.message}`);
+      }
+
+      console.log("Basic orders fetch successful, fetching full data...");
+
+      // Now fetch full orders with relationships
+      ({ data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(
           `
@@ -268,14 +326,21 @@ const AdminDashboard = () => {
           )
         `,
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }));
 
       if (ordersError) {
         console.error("Supabase error fetching orders:", {
           message: ordersError.message,
           code: ordersError.code,
           details: ordersError.details,
+          hint: ordersError.hint,
+          status: ordersError.status,
+          full_error: ordersError,
         });
+        console.error(
+          "Full ordersError object:",
+          JSON.stringify(ordersError, null, 2),
+        );
 
         // If the JOIN failed, try without profile join as fallback
         console.warn("Trying to fetch orders without profile join...");
@@ -481,13 +546,28 @@ const AdminDashboard = () => {
           : "No orders found",
       );
     } catch (error: any) {
-      console.error("Error fetching orders:", error.message || error);
+      console.error("Error fetching orders - Full details:", {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+        supabaseError: error?.supabaseError,
+        fullError: error,
+      });
+      console.error("Raw error object:", error);
+
+      // Set empty orders array
       setOrders([]);
-      // Show user-friendly error
+
+      // Show detailed error message
+      const errorMessage =
+        error?.message ||
+        error?.details ||
+        error?.hint ||
+        "Unknown database error";
+
       toast({
         title: "Orders Load Error",
-        description:
-          "Could not load orders from database. Please check your connection.",
+        description: `Database error: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -692,7 +772,9 @@ const AdminDashboard = () => {
 
   // Filter orders by payment method
   const getCodOrders = () => {
-    return orders.filter((order) => order.payment_method === "cod");
+    return orders.filter(
+      (order) => order.payment_method === "cod" && order.status !== "delivered",
+    );
   };
 
   // Filter COD orders with search and filter criteria
@@ -821,8 +903,10 @@ const AdminDashboard = () => {
   };
 
   const getFilteredOrders = () => {
-    // Exclude COD orders from regular order management
-    let filtered = orders.filter((order) => order.payment_method !== "cod");
+    // Exclude COD orders and delivered orders from regular order management
+    let filtered = orders.filter(
+      (order) => order.payment_method !== "cod" && order.status !== "delivered",
+    );
 
     // Filter by search term
     if (searchTerm) {
@@ -1559,7 +1643,29 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      {/* Admin Navigation */}
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <Crown className="h-6 w-6 text-orange-600" />
+              <span className="text-xl font-bold text-gray-900">
+                NutriVault Admin
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="text-xs">
+                {adminSession.role === "super_admin" ? "Super Admin" : "Admin"}
+              </Badge>
+              <span className="text-sm text-gray-600">{adminSession.name}</span>
+              <Button variant="outline" onClick={handleSignOut} size="sm">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -1588,17 +1694,53 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
-            <Badge variant="default" className="ml-2">
-              <Clock className="h-3 w-3 mr-1" />
-              Live Data
-            </Badge>
-            <Button variant="ghost" onClick={fetchData} size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={autoRefresh ? "default" : "secondary"}
+                className="ml-2"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                {autoRefresh ? "Auto Refresh" : "Manual"}
+                {isAutoRefreshing && (
+                  <RefreshCw className="h-3 w-3 ml-1 animate-spin" />
+                )}
+              </Badge>
+              {lastRefresh && (
+                <span className="text-xs text-gray-500">
+                  {lastRefresh.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <Select
+              value={refreshInterval.toString()}
+              onValueChange={(value) => setRefreshInterval(parseInt(value))}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10000">10s</SelectItem>
+                <SelectItem value="30000">30s</SelectItem>
+                <SelectItem value="60000">1m</SelectItem>
+                <SelectItem value="300000">5m</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant={autoRefresh ? "default" : "outline"}
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              size="sm"
+            >
+              {autoRefresh ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Auto On
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Auto Off
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -1743,41 +1885,83 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="products">
-              <Package className="h-4 w-4 mr-2" />
-              Products ({products.length})
-            </TabsTrigger>
-            <TabsTrigger value="orders">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Orders (
-              {orders.filter((order) => order.payment_method !== "cod").length})
-            </TabsTrigger>
-            <TabsTrigger value="cod-orders">
-              <CreditCard className="h-4 w-4 mr-2" />
-              COD Orders ({getCodOrders().length})
-            </TabsTrigger>
-            <TabsTrigger value="users">
-              <Users className="h-4 w-4 mr-2" />
-              Users ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Star className="h-4 w-4 mr-2" />
-              Reviews ({reviews.length})
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
-            <TabsTrigger value="debug">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Debug
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="flex w-max min-w-full gap-2 p-1">
+              <TabsTrigger
+                value="analytics"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger
+                value="products"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Products ({products.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="orders"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Orders (
+                {
+                  orders.filter(
+                    (order) =>
+                      order.payment_method !== "cod" &&
+                      order.status !== "delivered",
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger
+                value="cod-orders"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                COD Orders (
+                {
+                  orders.filter(
+                    (order) =>
+                      order.payment_method === "cod" &&
+                      order.status !== "delivered",
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger
+                value="users"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Users ({users.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="reviews"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <Star className="h-4 w-4 mr-2" />
+                Reviews ({reviews.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="order-history"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Order History (
+                {orders.filter((order) => order.status === "delivered").length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="px-4 py-2 whitespace-nowrap"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">
@@ -3241,6 +3425,148 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Order History Tab */}
+          <TabsContent value="order-history" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Order History - Delivered Orders
+                </CardTitle>
+                <p className="text-gray-600">
+                  View all successfully delivered orders
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Delivery Date</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders
+                        .filter((order) => order.status === "delivered")
+                        .sort(
+                          (a, b) =>
+                            new Date(b.updated_at).getTime() -
+                            new Date(a.updated_at).getTime(),
+                        )
+                        .map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">
+                              {order.id ? formatOrderId(order) : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">
+                                  {order.user_name || "Unknown User"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {order.user_email || "No email"}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {order.order_items &&
+                                order.order_items.length > 0 ? (
+                                  <>
+                                    {order.order_items
+                                      .slice(0, 2)
+                                      .map((item, index) => (
+                                        <div
+                                          key={index}
+                                          className="text-gray-600"
+                                        >
+                                          {item.product_name} ({item.weight}) x
+                                          {item.quantity}
+                                        </div>
+                                      ))}
+                                    {order.order_items.length > 2 && (
+                                      <div className="text-gray-500 text-xs">
+                                        +{order.order_items.length - 2} more
+                                        items
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-500">
+                                    No items
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {formatDate(order.updated_at)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {order.payment_method.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                  variant={
+                                    order.payment_status === "paid"
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {order.payment_status}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewingOrder(order)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadReceipt(order)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+
+                  {orders.filter((order) => order.status === "delivered")
+                    .length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No delivered orders found</p>
+                      <p className="text-sm">
+                        Delivered orders will appear here
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <Card>
@@ -3385,13 +3711,6 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Debug Tab */}
-          <TabsContent value="debug" className="space-y-6">
-            <div className="flex justify-center">
-              <DatabaseDebug />
-            </div>
           </TabsContent>
         </Tabs>
 

@@ -28,6 +28,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Wishlist from "./pages/Wishlist";
 import Categories from "./pages/Categories";
 import ResetPassword from "./pages/ResetPassword";
+import DatabaseTest from "./pages/DatabaseTest";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => {
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/track-order" element={<TrackOrder />} />
+                    <Route path="/database-test" element={<DatabaseTest />} />
                     {/* Category routes */}
                     <Route path="/categories" element={<Categories />} />
                     <Route

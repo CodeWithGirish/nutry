@@ -546,13 +546,28 @@ const AdminDashboard = () => {
           : "No orders found",
       );
     } catch (error: any) {
-      console.error("Error fetching orders:", error.message || error);
+      console.error("Error fetching orders - Full details:", {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+        supabaseError: error?.supabaseError,
+        fullError: error,
+      });
+      console.error("Raw error object:", error);
+
+      // Set empty orders array
       setOrders([]);
-      // Show user-friendly error
+
+      // Show detailed error message
+      const errorMessage =
+        error?.message ||
+        error?.details ||
+        error?.hint ||
+        "Unknown database error";
+
       toast({
         title: "Orders Load Error",
-        description:
-          "Could not load orders from database. Please check your connection.",
+        description: `Database error: ${errorMessage}`,
         variant: "destructive",
       });
     }

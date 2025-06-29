@@ -901,8 +901,10 @@ const AdminDashboard = () => {
   };
 
   const getFilteredOrders = () => {
-    // Exclude COD orders from regular order management
-    let filtered = orders.filter((order) => order.payment_method !== "cod");
+    // Exclude COD orders and delivered orders from regular order management
+    let filtered = orders.filter(
+      (order) => order.payment_method !== "cod" && order.status !== "delivered",
+    );
 
     // Filter by search term
     if (searchTerm) {
@@ -1876,7 +1878,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="orders">
               <ShoppingCart className="h-4 w-4 mr-2" />
               Orders (
-              {orders.filter((order) => order.payment_method !== "cod").length})
+              {
+                orders.filter(
+                  (order) =>
+                    order.payment_method !== "cod" &&
+                    order.status !== "delivered",
+                ).length
+              }
+              )
             </TabsTrigger>
             <TabsTrigger value="cod-orders">
               <CreditCard className="h-4 w-4 mr-2" />

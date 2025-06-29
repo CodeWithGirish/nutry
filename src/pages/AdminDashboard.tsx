@@ -3363,6 +3363,148 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Order History Tab */}
+          <TabsContent value="order-history" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Order History - Delivered Orders
+                </CardTitle>
+                <p className="text-gray-600">
+                  View all successfully delivered orders
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Delivery Date</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders
+                        .filter((order) => order.status === "delivered")
+                        .sort(
+                          (a, b) =>
+                            new Date(b.updated_at).getTime() -
+                            new Date(a.updated_at).getTime(),
+                        )
+                        .map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">
+                              {formatOrderId(order.id)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">
+                                  {order.user_name || "Unknown User"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {order.user_email || "No email"}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {order.order_items &&
+                                order.order_items.length > 0 ? (
+                                  <>
+                                    {order.order_items
+                                      .slice(0, 2)
+                                      .map((item, index) => (
+                                        <div
+                                          key={index}
+                                          className="text-gray-600"
+                                        >
+                                          {item.product_name} ({item.weight}) x
+                                          {item.quantity}
+                                        </div>
+                                      ))}
+                                    {order.order_items.length > 2 && (
+                                      <div className="text-gray-500 text-xs">
+                                        +{order.order_items.length - 2} more
+                                        items
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-500">
+                                    No items
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              {formatPrice(order.total_amount)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {formatDate(order.updated_at)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {order.payment_method.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                  variant={
+                                    order.payment_status === "paid"
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {order.payment_status}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewingOrder(order)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadReceipt(order)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+
+                  {orders.filter((order) => order.status === "delivered")
+                    .length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No delivered orders found</p>
+                      <p className="text-sm">
+                        Delivered orders will appear here
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <Card>

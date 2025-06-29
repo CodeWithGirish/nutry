@@ -33,6 +33,8 @@ const DatabaseTest = () => {
         cart: false,
         orders: false,
         profiles: false,
+        orders_with_items: false,
+        orders_with_profiles: false,
       };
 
       // Test products table
@@ -93,6 +95,61 @@ const DatabaseTest = () => {
         if (error) console.log("Profiles error:", error);
       } catch (e) {
         tests.profiles = false;
+      }
+
+      // Test orders with order_items relationship
+      try {
+        console.log("Testing orders with order_items relationship...");
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*, order_items(*)")
+          .limit(1);
+        tests.orders_with_items = !error;
+        if (error) {
+          console.error("Orders with items error:", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+        } else {
+          console.log("Orders with items successful:", data);
+        }
+      } catch (e) {
+        console.error("Orders with items exception:", e);
+        tests.orders_with_items = false;
+      }
+
+      // Test orders with profiles relationship
+      try {
+        console.log("Testing orders with profiles relationship...");
+        const { data, error } = await supabase
+          .from("orders")
+          .select(
+            `
+            *,
+            profiles:user_id(
+              id,
+              full_name,
+              email
+            )
+          `,
+          )
+          .limit(1);
+        tests.orders_with_profiles = !error;
+        if (error) {
+          console.error("Orders with profiles error:", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+        } else {
+          console.log("Orders with profiles successful:", data);
+        }
+      } catch (e) {
+        console.error("Orders with profiles exception:", e);
+        tests.orders_with_profiles = false;
       }
 
       setTestResults({

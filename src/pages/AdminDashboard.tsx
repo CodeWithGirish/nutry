@@ -1193,7 +1193,7 @@ const AdminDashboard = () => {
         name: "",
         description: "",
         category: "",
-        image_url: "🥜",
+        image_url: "��",
         images: [],
         prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
         original_price: null,
@@ -1716,22 +1716,7 @@ const AdminDashboard = () => {
                 </>
               )}
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                fetchData();
-                setLastRefresh(new Date());
-              }}
-              size="sm"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Manual
-            </Button>
+
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out

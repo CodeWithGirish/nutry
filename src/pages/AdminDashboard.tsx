@@ -1643,7 +1643,29 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      {/* Admin Navigation */}
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <Crown className="h-6 w-6 text-orange-600" />
+              <span className="text-xl font-bold text-gray-900">
+                NutriVault Admin
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="text-xs">
+                {adminSession.role === "super_admin" ? "Super Admin" : "Admin"}
+              </Badge>
+              <span className="text-sm text-gray-600">{adminSession.name}</span>
+              <Button variant="outline" onClick={handleSignOut} size="sm">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

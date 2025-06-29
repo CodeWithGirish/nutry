@@ -99,14 +99,18 @@ export const WishlistProvider = ({
 
       setWishlistItems(enrichedItems);
     } catch (error: any) {
-      console.error("Error loading wishlist:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        status: error.status,
-        full_error: error,
+      console.error("Error loading wishlist - Details:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        status: error?.status,
       });
+      console.error("Error loading wishlist - Full error object:", error);
+      console.error(
+        "Error loading wishlist - Stringified:",
+        JSON.stringify(error, null, 2),
+      );
 
       if (
         isDatabaseError(error) ||

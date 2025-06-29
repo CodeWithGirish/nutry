@@ -128,14 +128,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       setCartItems(validCartItems);
     } catch (error: any) {
-      console.error("Error fetching cart items:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        status: error.status,
-        full_error: error,
+      console.error("Error fetching cart items - Details:", {
+        message: error?.message || "Unknown error",
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        status: error?.status,
       });
+      console.error("Error fetching cart items - Full error object:", error);
+      console.error(
+        "Error fetching cart items - Stringified:",
+        JSON.stringify(error, null, 2),
+      );
 
       if (
         isDatabaseError(error) ||

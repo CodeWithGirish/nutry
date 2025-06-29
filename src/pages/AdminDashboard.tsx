@@ -1887,15 +1887,24 @@ const AdminDashboard = () => {
         <Tabs defaultValue="analytics" className="space-y-6">
           <div className="w-full overflow-x-auto">
             <TabsList className="flex w-max min-w-full gap-2 p-1">
-              <TabsTrigger value="analytics">
+              <TabsTrigger
+                value="analytics"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Analytics
               </TabsTrigger>
-              <TabsTrigger value="products">
+              <TabsTrigger
+                value="products"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <Package className="h-4 w-4 mr-2" />
                 Products ({products.length})
               </TabsTrigger>
-              <TabsTrigger value="orders">
+              <TabsTrigger
+                value="orders"
+                className="px-4 py-2 whitespace-nowrap"
+              >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Orders (
                 {

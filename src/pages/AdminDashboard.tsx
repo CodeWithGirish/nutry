@@ -4,7 +4,7 @@ import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
 import MultiImageUpload from "@/components/MultiImageUpload";
 import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
-import DatabaseDebug from "@/components/DatabaseDebug";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1193,7 +1193,7 @@ const AdminDashboard = () => {
         name: "",
         description: "",
         category: "",
-        image_url: "��",
+        image_url: "🥜",
         images: [],
         prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
         original_price: null,
@@ -1893,10 +1893,6 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
               Settings
-            </TabsTrigger>
-            <TabsTrigger value="debug">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Debug
             </TabsTrigger>
           </TabsList>
 
@@ -3506,13 +3502,6 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Debug Tab */}
-          <TabsContent value="debug" className="space-y-6">
-            <div className="flex justify-center">
-              <DatabaseDebug />
-            </div>
           </TabsContent>
         </Tabs>
 

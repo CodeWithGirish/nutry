@@ -59,15 +59,27 @@ const DatabaseTest = () => {
         tests.cart = false;
       }
 
-      // Test orders table
+      // Test orders table with detailed diagnostics
       try {
+        console.log("Testing orders table...");
         const { data, error } = await supabase
           .from("orders")
-          .select("id")
+          .select("*")
           .limit(1);
         tests.orders = !error;
-        if (error) console.log("Orders error:", error);
+        if (error) {
+          console.error("Orders error details:", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            status: error.status,
+          });
+        } else {
+          console.log("Orders table accessible, sample data:", data);
+        }
       } catch (e) {
+        console.error("Orders table exception:", e);
         tests.orders = false;
       }
 

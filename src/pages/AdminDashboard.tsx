@@ -1885,7 +1885,8 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <div className="w-full overflow-x-auto">
+            <TabsList className="flex w-max min-w-full gap-2 p-1">
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics

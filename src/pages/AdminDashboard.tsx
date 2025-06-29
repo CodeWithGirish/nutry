@@ -290,8 +290,30 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      // Fetch orders with order items and user profiles using join
+      console.log("Starting fetchOrders...");
+
+      // Try simple orders fetch first to check if table exists
       let { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (ordersError) {
+        console.error("Basic orders fetch failed:", {
+          message: ordersError.message,
+          code: ordersError.code,
+          details: ordersError.details,
+          hint: ordersError.hint,
+          status: ordersError.status,
+        });
+        throw new Error(`Orders table access failed: ${ordersError.message}`);
+      }
+
+      console.log("Basic orders fetch successful, fetching full data...");
+
+      // Now fetch full orders with relationships
+      ({ data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(
           `
@@ -304,7 +326,7 @@ const AdminDashboard = () => {
           )
         `,
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }));
 
       if (ordersError) {
         console.error("Supabase error fetching orders:", {

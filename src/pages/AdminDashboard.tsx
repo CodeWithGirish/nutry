@@ -777,6 +777,13 @@ const AdminDashboard = () => {
     }
   };
 
+  // Run order history connection test and update state
+  const runOrderHistoryConnectionTest = async () => {
+    const results = await testOrderHistoryConnection();
+    setOrderHistoryConnectionStatus(results);
+    return results;
+  };
+
   const fetchOrderHistory = async () => {
     try {
       console.log("Fetching order history...");

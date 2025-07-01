@@ -156,7 +156,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     category: "",
-    image_url: "���",
+    image_url: "�����",
     images: [] as string[],
     prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
     original_price: null as number | null,
@@ -1795,6 +1795,19 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
+            {/* Manual Retry Button for Connection Errors */}
+            {connectionStatus === "error" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchOrders(0)}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Connection
+              </Button>
+            )}
+
             <div className="flex items-center gap-2">
               <Badge
                 variant={autoRefresh ? "default" : "secondary"}

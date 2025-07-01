@@ -1952,11 +1952,14 @@ const AdminDashboard = () => {
                 <FileText className="h-4 w-4 mr-2" />
                 Order History (
                 {
-                  orders.filter(
-                    (order) =>
+                  orders.filter((order) => {
+                    // Only count orders that are delivered and explicitly not cancelled
+                    return (
                       order.status === "delivered" &&
-                      order.status !== "cancelled",
-                  ).length
+                      order.status !== "cancelled" &&
+                      order.status !== "pending"
+                    );
+                  }).length
                 }
                 )
               </TabsTrigger>

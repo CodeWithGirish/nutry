@@ -666,7 +666,13 @@ const AdminDashboard = () => {
       );
 
       if (rpcError) {
-        console.warn("RPC function failed, trying fallback method:", rpcError);
+        console.warn("RPC function failed, trying fallback method:", {
+          message: rpcError.message,
+          code: rpcError.code,
+          details: rpcError.details,
+          hint: rpcError.hint,
+          fullError: rpcError,
+        });
 
         // Fallback: Query order_history table directly
         const { data: historyData, error: historyError } = await supabase

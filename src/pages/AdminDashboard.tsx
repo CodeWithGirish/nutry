@@ -217,6 +217,14 @@ const AdminDashboard = () => {
     try {
       console.log("Starting data fetch...");
 
+      // Check network connectivity first
+      if (!navigator.onLine) {
+        console.warn("Device appears to be offline");
+        setConnectionStatus("error");
+        setLoading(false);
+        return;
+      }
+
       // Perform daily cleanup first
       await performDailyCleanup();
 

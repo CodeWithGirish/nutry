@@ -3460,11 +3460,14 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {orders
-                        .filter(
-                          (order) =>
+                        .filter((order) => {
+                          // Only show orders that are delivered and explicitly not cancelled
+                          return (
                             order.status === "delivered" &&
-                            order.status !== "cancelled",
-                        )
+                            order.status !== "cancelled" &&
+                            order.status !== "pending"
+                          );
+                        })
                         .sort(
                           (a, b) =>
                             new Date(b.updated_at).getTime() -

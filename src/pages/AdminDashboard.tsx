@@ -3918,19 +3918,11 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders
-                        .filter((order) => {
-                          // Only show orders that are delivered and explicitly not cancelled
-                          return (
-                            order.status === "delivered" &&
-                            order.status !== "cancelled" &&
-                            order.status !== "pending"
-                          );
-                        })
+                      {orderHistory
                         .sort(
                           (a, b) =>
-                            new Date(b.updated_at).getTime() -
-                            new Date(a.updated_at).getTime(),
+                            new Date(b.moved_to_history_at).getTime() -
+                            new Date(a.moved_to_history_at).getTime(),
                         )
                         .map((order) => (
                           <TableRow key={order.id}>

@@ -119,6 +119,9 @@ const AdminDashboard = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "connecting" | "error"
+  >("connecting");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const [productLoading, setProductLoading] = useState(false);

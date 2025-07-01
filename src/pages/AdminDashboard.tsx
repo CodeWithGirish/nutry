@@ -3907,13 +3907,20 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orderHistory
-                        .sort(
-                          (a, b) =>
-                            new Date(b.moved_to_history_at).getTime() -
-                            new Date(a.moved_to_history_at).getTime(),
-                        )
-                        .map((historyOrder) => (
+                      {orderHistory.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            No order history found. Delivered orders will appear here after the daily cleanup.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        orderHistory
+                          .sort(
+                            (a, b) =>
+                              new Date(b.moved_to_history_at).getTime() -
+                              new Date(a.moved_to_history_at).getTime(),
+                          )
+                          .map((historyOrder) => (
                           <TableRow key={historyOrder.id}>
                             <TableCell className="font-medium">
                               #

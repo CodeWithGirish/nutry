@@ -1902,6 +1902,22 @@ const AdminDashboard = () => {
     );
   };
 
+  // Helper function to format error objects for better logging
+  const formatError = (error: any) => {
+    if (typeof error === "object" && error !== null) {
+      return {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        name: error.name,
+        type: typeof error,
+        fullError: error,
+      };
+    }
+    return error;
+  };
+
   // All available order statuses
   const allOrderStatuses = [
     { value: "pending", label: "Pending" },

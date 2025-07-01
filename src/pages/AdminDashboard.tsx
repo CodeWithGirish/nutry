@@ -615,8 +615,9 @@ const AdminDashboard = () => {
         console.error("Supabase URL accessibility: FAILED", supabaseError);
       }
 
-      // Set empty orders array
+      // Set empty orders array and error status
       setOrders([]);
+      setConnectionStatus("error");
 
       // Show detailed error message with more context
       const errorMessage =

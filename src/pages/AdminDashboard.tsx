@@ -3913,27 +3913,32 @@ const AdminDashboard = () => {
                             new Date(b.moved_to_history_at).getTime() -
                             new Date(a.moved_to_history_at).getTime(),
                         )
-                        .map((order) => (
-                          <TableRow key={order.id}>
+                        .map((historyOrder) => (
+                          <TableRow key={historyOrder.id}>
                             <TableCell className="font-medium">
-                              {order.id ? formatOrderId(order) : "N/A"}
+                              #
+                              {historyOrder.original_order_id
+                                ?.toString()
+                                .slice(-8)
+                                .toUpperCase() || "N/A"}
                             </TableCell>
                             <TableCell>
                               <div>
                                 <div className="font-medium">
-                                  {order.user_name || "Unknown User"}
+                                  {historyOrder.user_name || "Unknown User"}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {order.user_email || "No email"}
+                                  {historyOrder.user_email || "No email"}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                {order.order_items &&
-                                order.order_items.length > 0 ? (
+                                {historyOrder.order_items &&
+                                Array.isArray(historyOrder.order_items) &&
+                                historyOrder.order_items.length > 0 ? (
                                   <>
-                                    {order.order_items
+                                    {historyOrder.order_items
                                       .slice(0, 2)
                                       .map((item, index) => (
                                         <div
@@ -3944,10 +3949,10 @@ const AdminDashboard = () => {
                                           {item.quantity}
                                         </div>
                                       ))}
-                                    {order.order_items.length > 2 && (
+                                    {historyOrder.order_items.length > 2 && (
                                       <div className="text-gray-500 text-xs">
-                                        +{order.order_items.length - 2} more
-                                        items
+                                        +{historyOrder.order_items.length - 2}{" "}
+                                        more items
                                       </div>
                                     )}
                                   </>
@@ -3959,11 +3964,14 @@ const AdminDashboard = () => {
                               </div>
                             </TableCell>
                             <TableCell className="font-semibold">
-                              {formatPrice(order.total_amount)}
+                              {formatPrice(historyOrder.total_amount)}
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                {formatDate(order.updated_at)}
+                                {formatDate(
+                                  historyOrder.delivered_date ||
+                                    historyOrder.order_updated_at,
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>

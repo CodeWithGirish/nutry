@@ -4194,26 +4194,15 @@ const AdminDashboard = () => {
                       </p>
                     )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={runOrderHistoryConnectionTest}
-                    className="text-green-600 border-green-300 hover:bg-green-50"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Test Connection
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={performDailyCleanup}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Run Cleanup Now
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runOrderHistoryConnectionTest}
+                  className="text-green-600 border-green-300 hover:bg-green-50"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Test Connection
+                </Button>
               </CardHeader>
               <CardContent>
                 {/* Connection Status Panel */}

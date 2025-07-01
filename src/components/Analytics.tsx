@@ -243,7 +243,9 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
 
       if (error) {
         console.error("Failed to fetch category data:", error);
-        throw new Error("Database connection failed");
+        console.warn("Using fallback category data due to connection issue");
+        setCategoryData([]);
+        return;
       }
 
       // Count products per category

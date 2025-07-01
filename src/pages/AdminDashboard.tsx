@@ -660,19 +660,81 @@ const AdminDashboard = () => {
     try {
       console.log("Fetching order history...");
 
-      // Use the database function to get order history with details
-      const { data, error } = await supabase.rpc(
+      // Try using the database function first
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
         "get_order_history_with_details",
       );
 
-      if (error) {
-        console.error("Error fetching order history:", error);
-        setOrderHistory([]);
+      if (rpcError) {
+        console.warn("RPC function failed, trying fallback method:", rpcError);
+
+        // Fallback: Query order_history table directly
+        const { data: historyData, error: historyError } = await supabase
+          .from("order_history")
+          .select(
+            `
+            id,
+            original_order_id,
+            user_id,
+            status,
+            payment_method,
+            payment_status,
+            total_amount,
+            shipping_address,
+            is_gift,
+            gift_message,
+            gift_box_price,
+            order_created_at,
+            order_updated_at,
+            delivered_date,
+            moved_to_history_at,
+            profiles:user_id(full_name, email)
+          `,
+          )
+          .order("moved_to_history_at", { ascending: false });
+
+        if (historyError) {
+          console.error(
+            "Error fetching order history with fallback:",
+            historyError,
+          );
+          // If order_history table doesn't exist, return empty array silently
+          if (historyError.code === "42P01") {
+            console.log(
+              "Order history table doesn't exist yet - this is normal for new installations",
+            );
+          }
+          setOrderHistory([]);
+          return;
+        }
+
+        // Get order items for each history order
+        const enrichedData = await Promise.all(
+          (historyData || []).map(async (order) => {
+            const { data: items } = await supabase
+              .from("order_history_items")
+              .select("*")
+              .eq("order_history_id", order.id);
+
+            return {
+              ...order,
+              user_name: order.profiles?.full_name || "Unknown User",
+              user_email: order.profiles?.email || "No email",
+              order_items: items || [],
+            };
+          }),
+        );
+
+        setOrderHistory(enrichedData);
+        console.log(
+          "Order history fetched with fallback method:",
+          enrichedData.length,
+        );
         return;
       }
 
-      setOrderHistory(data || []);
-      console.log("Order history fetched successfully:", data?.length || 0);
+      setOrderHistory(rpcData || []);
+      console.log("Order history fetched successfully:", rpcData?.length || 0);
     } catch (error: any) {
       console.error("Exception fetching order history:", error);
       setOrderHistory([]);

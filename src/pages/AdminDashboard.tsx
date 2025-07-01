@@ -2180,18 +2180,7 @@ const AdminDashboard = () => {
                 className="px-4 py-2 whitespace-nowrap"
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Order History (
-                {
-                  orders.filter((order) => {
-                    // Only count orders that are delivered and explicitly not cancelled
-                    return (
-                      order.status === "delivered" &&
-                      order.status !== "cancelled" &&
-                      order.status !== "pending"
-                    );
-                  }).length
-                }
-                )
+                Order History ({orderHistory.length})
               </TabsTrigger>
               <TabsTrigger
                 value="settings"

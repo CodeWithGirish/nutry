@@ -213,7 +213,9 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
 
       if (error) {
         console.error("Failed to fetch product data:", error);
-        throw new Error("Database connection failed");
+        console.warn("Using fallback product data due to connection issue");
+        setProductData([]);
+        return;
       }
 
       const formattedData = (data || []).map((product) => ({

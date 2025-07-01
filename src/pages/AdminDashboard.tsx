@@ -3453,7 +3453,11 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {orders
-                        .filter((order) => order.status === "delivered")
+                        .filter(
+                          (order) =>
+                            order.status === "delivered" &&
+                            order.status !== "cancelled",
+                        )
                         .sort(
                           (a, b) =>
                             new Date(b.updated_at).getTime() -

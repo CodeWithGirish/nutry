@@ -562,6 +562,7 @@ const AdminDashboard = () => {
       });
 
       setOrders(transformedOrders);
+      setConnectionStatus("connected");
       console.log("Orders fetched successfully:", transformedOrders.length);
       console.log(
         "Sample transformed order:",

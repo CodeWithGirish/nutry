@@ -109,8 +109,10 @@ const Analytics = ({ timeRange }: AnalyticsProps) => {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.error("Failed to fetch product data:", error);
-        throw new Error("Database connection failed");
+        console.error("Failed to fetch revenue data:", error);
+        console.warn("Using fallback revenue data due to connection issue");
+        setRevenueData([]);
+        return;
       }
 
       // Group orders by date and calculate daily revenue

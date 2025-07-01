@@ -4224,10 +4224,10 @@ const AdminDashboard = () => {
                     style={{
                       backgroundColor:
                         orderHistoryConnectionStatus.overallStatus
-                          ? "#f0f9ff"
+                          ? "#f0fdf4"
                           : "#fef3c7",
                       borderColor: orderHistoryConnectionStatus.overallStatus
-                        ? "#3b82f6"
+                        ? "#22c55e"
                         : "#f59e0b",
                     }}
                   >

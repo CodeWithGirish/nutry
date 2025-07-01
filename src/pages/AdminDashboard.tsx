@@ -1951,7 +1951,14 @@ const AdminDashboard = () => {
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Order History (
-                {orders.filter((order) => order.status === "delivered").length})
+                {
+                  orders.filter(
+                    (order) =>
+                      order.status === "delivered" &&
+                      order.status !== "cancelled",
+                  ).length
+                }
+                )
               </TabsTrigger>
               <TabsTrigger
                 value="settings"

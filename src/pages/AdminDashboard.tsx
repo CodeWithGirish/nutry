@@ -297,6 +297,7 @@ const AdminDashboard = () => {
   const fetchOrders = async (retryCount = 0) => {
     const maxRetries = 2;
     try {
+      setConnectionStatus("connecting");
       console.log("Starting fetchOrders...");
       console.log("Supabase URL:", supabase.supabaseUrl);
       console.log("Network status:", navigator.onLine ? "Online" : "Offline");

@@ -3883,14 +3883,25 @@ const AdminDashboard = () => {
           {/* Order History Tab */}
           <TabsContent value="order-history" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Order History - Delivered Orders
-                </CardTitle>
-                <p className="text-gray-600">
-                  View all successfully delivered orders
-                </p>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Order History - Delivered Orders
+                  </CardTitle>
+                  <p className="text-gray-600">
+                    View all successfully delivered orders
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={performDailyCleanup}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Run Cleanup Now
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">

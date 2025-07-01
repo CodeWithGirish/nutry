@@ -724,17 +724,43 @@ const AdminDashboard = () => {
         // Get order items for each history order
         const enrichedData = await Promise.all(
           (historyData || []).map(async (order) => {
-            const { data: items } = await supabase
-              .from("order_history_items")
-              .select("*")
-              .eq("order_history_id", order.id);
+            try {
+              const { data: items, error: itemsError } = await supabase
+                .from("order_history_items")
+                .select("*")
+                .eq("order_history_id", order.id);
 
-            return {
-              ...order,
-              user_name: order.profiles?.full_name || "Unknown User",
-              user_email: order.profiles?.email || "No email",
-              order_items: items || [],
-            };
+              if (itemsError) {
+                console.warn(
+                  `Error fetching items for order ${order.id}:`,
+                  itemsError.message,
+                );
+                return {
+                  ...order,
+                  user_name: order.profiles?.full_name || "Unknown User",
+                  user_email: order.profiles?.email || "No email",
+                  order_items: [],
+                };
+              }
+
+              return {
+                ...order,
+                user_name: order.profiles?.full_name || "Unknown User",
+                user_email: order.profiles?.email || "No email",
+                order_items: items || [],
+              };
+            } catch (err) {
+              console.warn(
+                `Exception fetching items for order ${order.id}:`,
+                err,
+              );
+              return {
+                ...order,
+                user_name: order.profiles?.full_name || "Unknown User",
+                user_email: order.profiles?.email || "No email",
+                order_items: [],
+              };
+            }
           }),
         );
 

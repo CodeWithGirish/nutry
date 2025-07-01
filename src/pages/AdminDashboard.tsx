@@ -112,6 +112,8 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
+  const [orderHistoryConnectionStatus, setOrderHistoryConnectionStatus] =
+    useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);

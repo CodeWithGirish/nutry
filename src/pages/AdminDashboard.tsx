@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
 import MultiImageUpload from "@/components/MultiImageUpload";
 import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
+import OfflineIndicator from "@/components/OfflineIndicator";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

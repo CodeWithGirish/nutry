@@ -156,7 +156,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     category: "",
-    image_url: "�����",
+    image_url: "���",
     images: [] as string[],
     prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
     original_price: null as number | null,
@@ -302,17 +302,18 @@ const AdminDashboard = () => {
       console.log("Supabase URL:", supabase.supabaseUrl);
       console.log("Network status:", navigator.onLine ? "Online" : "Offline");
 
-      // Test network connectivity first
+      // Test network connectivity first (non-blocking)
       try {
         await fetch("https://httpbin.org/get", {
           method: "GET",
           mode: "cors",
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(3000),
         });
         console.log("Network connectivity test: SUCCESS");
       } catch (netError) {
-        console.error("Network connectivity test: FAILED", netError);
-        throw new Error("Network connectivity issue detected");
+        console.warn("Network connectivity test: FAILED", netError);
+        console.log("Continuing with database connection attempt...");
+        // Don't throw error - continue with database attempt
       }
 
       // Try simple orders fetch first to check if table exists

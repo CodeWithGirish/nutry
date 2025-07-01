@@ -227,9 +227,6 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Perform daily cleanup first
-      await performDailyCleanup();
-
       // Test order history connection
       await runOrderHistoryConnectionTest();
 

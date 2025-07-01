@@ -913,6 +913,91 @@ const AdminDashboard = () => {
     return filtered;
   };
 
+  // Daily cleanup function to move delivered orders to history
+  const performDailyCleanup = async () => {
+    try {
+      console.log("Checking if daily cleanup is needed...");
+
+      // Check last cleanup date from localStorage
+      const lastCleanup = localStorage.getItem("lastOrderCleanup");
+      const today = new Date().toDateString();
+
+      if (lastCleanup === today) {
+        console.log("Daily cleanup already performed today");
+        return;
+      }
+
+      console.log("Performing daily order cleanup...");
+
+      // Get delivered orders that are older than 24 hours
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      const { data: deliveredOrders, error } = await supabase
+        .from("orders")
+        .select("id, status, updated_at")
+        .eq("status", "delivered")
+        .lt("updated_at", yesterday.toISOString());
+
+      if (error) {
+        console.error("Error fetching delivered orders for cleanup:", error);
+        return;
+      }
+
+      if (!deliveredOrders || deliveredOrders.length === 0) {
+        console.log("No delivered orders to move to history");
+        localStorage.setItem("lastOrderCleanup", today);
+        return;
+      }
+
+      console.log(
+        `Moving ${deliveredOrders.length} delivered orders to history...`,
+      );
+
+      // Move each delivered order to history
+      for (const order of deliveredOrders) {
+        try {
+          // Call the database function to move order to history
+          const { error: moveError } = await supabase.rpc(
+            "move_order_to_history",
+            {
+              order_id: order.id,
+            },
+          );
+
+          if (moveError) {
+            console.error(
+              `Error moving order ${order.id} to history:`,
+              moveError,
+            );
+          } else {
+            console.log(`Successfully moved order ${order.id} to history`);
+          }
+        } catch (err) {
+          console.error(`Exception moving order ${order.id}:`, err);
+        }
+      }
+
+      // Mark cleanup as completed for today
+      localStorage.setItem("lastOrderCleanup", today);
+
+      // Refresh orders data to reflect changes
+      await fetchOrders();
+
+      toast({
+        title: "Daily Cleanup Completed",
+        description: `Moved ${deliveredOrders.length} delivered orders to history`,
+      });
+    } catch (error: any) {
+      console.error("Error during daily cleanup:", error);
+      toast({
+        title: "Cleanup Error",
+        description: "Failed to perform daily order cleanup",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUpdatePaymentStatus = async (
     orderId: string,
     paymentStatus: "paid" | "pending",

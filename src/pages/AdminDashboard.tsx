@@ -573,25 +573,58 @@ const AdminDashboard = () => {
       console.error("Error fetching orders - Full details:", {
         message: error?.message,
         name: error?.name,
+        type: typeof error,
+        constructor: error?.constructor?.name,
         stack: error?.stack,
         supabaseError: error?.supabaseError,
         fullError: error,
       });
       console.error("Raw error object:", error);
 
+      // Additional connection diagnostics
+      console.log("Running connection diagnostics...");
+
+      // Test 1: Check if navigator exists
+      console.log("Navigator online status:", navigator?.onLine);
+
+      // Test 2: Test basic fetch
+      try {
+        await fetch("https://httpbin.org/get", {
+          method: "GET",
+          signal: AbortSignal.timeout(3000),
+        });
+        console.log("Basic fetch test: SUCCESS");
+      } catch (fetchError) {
+        console.error("Basic fetch test: FAILED", fetchError);
+      }
+
+      // Test 3: Test Supabase URL accessibility
+      try {
+        await fetch(supabase.supabaseUrl, {
+          method: "HEAD",
+          signal: AbortSignal.timeout(3000),
+        });
+        console.log("Supabase URL accessibility: SUCCESS");
+      } catch (supabaseError) {
+        console.error("Supabase URL accessibility: FAILED", supabaseError);
+      }
+
       // Set empty orders array
       setOrders([]);
 
-      // Show detailed error message
+      // Show detailed error message with more context
       const errorMessage =
-        error?.message ||
-        error?.details ||
-        error?.hint ||
-        "Unknown database error";
+        error?.message || error?.details || error?.hint || "Connection error";
+      const isNetworkError =
+        error?.message?.includes("Failed to fetch") ||
+        error?.name === "TypeError" ||
+        !navigator?.onLine;
 
       toast({
-        title: "Orders Load Error",
-        description: `Database error: ${errorMessage}`,
+        title: isNetworkError ? "Connection Error" : "Database Error",
+        description: isNetworkError
+          ? "Unable to connect to the database. Please check your internet connection and try again."
+          : `Database error: ${errorMessage}`,
         variant: "destructive",
       });
     }

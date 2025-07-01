@@ -153,7 +153,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     category: "",
-    image_url: "🥜",
+    image_url: "���",
     images: [] as string[],
     prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
     original_price: null as number | null,
@@ -621,10 +621,22 @@ const AdminDashboard = () => {
         error?.name === "TypeError" ||
         !navigator?.onLine;
 
+      // Retry logic for network errors
+      if (isNetworkError && retryCount < maxRetries) {
+        console.log(`Retrying fetchOrders... attempt ${retryCount + 1}`);
+        setTimeout(
+          () => {
+            fetchOrders(retryCount + 1);
+          },
+          (retryCount + 1) * 2000,
+        ); // Exponential backoff: 2s, 4s
+        return;
+      }
+
       toast({
         title: isNetworkError ? "Connection Error" : "Database Error",
         description: isNetworkError
-          ? "Unable to connect to the database. Please check your internet connection and try again."
+          ? `Unable to connect to the database after ${maxRetries + 1} attempts. Please check your internet connection and refresh the page.`
           : `Database error: ${errorMessage}`,
         variant: "destructive",
       });

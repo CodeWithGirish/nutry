@@ -291,7 +291,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (retryCount = 0) => {
+    const maxRetries = 2;
     try {
       console.log("Starting fetchOrders...");
       console.log("Supabase URL:", supabase.supabaseUrl);

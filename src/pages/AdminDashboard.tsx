@@ -78,6 +78,9 @@ import {
   MapPin,
   CreditCard,
   Shield,
+  CheckCircle2,
+  Truck,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";

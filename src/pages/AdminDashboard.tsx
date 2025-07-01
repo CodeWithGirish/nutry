@@ -655,6 +655,29 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchOrderHistory = async () => {
+    try {
+      console.log("Fetching order history...");
+
+      // Use the database function to get order history with details
+      const { data, error } = await supabase.rpc(
+        "get_order_history_with_details",
+      );
+
+      if (error) {
+        console.error("Error fetching order history:", error);
+        setOrderHistory([]);
+        return;
+      }
+
+      setOrderHistory(data || []);
+      console.log("Order history fetched successfully:", data?.length || 0);
+    } catch (error: any) {
+      console.error("Exception fetching order history:", error);
+      setOrderHistory([]);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       // Try without role filter first to avoid RLS issues

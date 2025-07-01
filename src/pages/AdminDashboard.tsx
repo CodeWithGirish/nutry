@@ -4217,6 +4217,85 @@ const AdminDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
+                {/* Connection Status Panel */}
+                {orderHistoryConnectionStatus && (
+                  <div
+                    className="mb-6 p-4 rounded-lg border"
+                    style={{
+                      backgroundColor:
+                        orderHistoryConnectionStatus.overallStatus
+                          ? "#f0f9ff"
+                          : "#fef3c7",
+                      borderColor: orderHistoryConnectionStatus.overallStatus
+                        ? "#3b82f6"
+                        : "#f59e0b",
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      {orderHistoryConnectionStatus.overallStatus ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      )}
+                      <h4 className="font-medium">
+                        Database Connection Status
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.orderHistoryTable ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>History Table</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.orderHistoryItemsTable ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Items Table</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.profiles ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Profiles Access</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.rpcFunction ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Fetch Function</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.moveFunction ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Move Function</span>
+                      </div>
+                    </div>
+                    {!orderHistoryConnectionStatus.overallStatus && (
+                      <div className="mt-3 p-3 bg-orange-50 rounded border border-orange-200">
+                        <p className="text-sm text-orange-800">
+                          <strong>Setup Required:</strong> Order history
+                          database setup is incomplete. Please run the setup SQL
+                          script to enable full functionality. Check the console
+                          for detailed test results.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>

@@ -230,6 +230,9 @@ const AdminDashboard = () => {
       // Perform daily cleanup first
       await performDailyCleanup();
 
+      // Test order history connection
+      await runOrderHistoryConnectionTest();
+
       // Always try to fetch orders first - orders must be dynamic
       console.log("Fetching orders from database (always dynamic)...");
       await fetchOrders();

@@ -230,6 +230,7 @@ const AdminDashboard = () => {
         fetchReviews(),
         fetchUsers(),
         fetchContactMessages(),
+        fetchOrderHistory(),
         fetchStats(),
       ]);
 

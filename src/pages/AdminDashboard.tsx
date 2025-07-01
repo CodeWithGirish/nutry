@@ -216,6 +216,9 @@ const AdminDashboard = () => {
     try {
       console.log("Starting data fetch...");
 
+      // Perform daily cleanup first
+      await performDailyCleanup();
+
       // Always try to fetch orders first - orders must be dynamic
       console.log("Fetching orders from database (always dynamic)...");
       await fetchOrders();

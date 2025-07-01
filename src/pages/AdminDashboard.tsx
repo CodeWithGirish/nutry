@@ -858,12 +858,19 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Supabase error fetching contact messages:", error);
+        console.error("Supabase error fetching contact messages:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          fullError: error,
+        });
 
         // Handle missing table gracefully
         if (
           error.code === "42P01" ||
-          error.message?.includes("does not exist")
+          error.message?.includes("does not exist") ||
+          error.message?.includes("relation")
         ) {
           console.log(
             "Contact messages table not created yet, using empty array",
@@ -884,9 +891,13 @@ const AdminDashboard = () => {
           return;
         }
 
-        throw new Error(
-          `Failed to fetch contact messages: ${error.message || JSON.stringify(error)}`,
+        // For other errors, still set empty array but log detailed error
+        console.warn(
+          "Contact messages fetch failed, using empty array:",
+          error.message,
         );
+        setContactMessages([]);
+        return;
       }
       setContactMessages(data || []);
       console.log("Contact messages fetched successfully:", data?.length || 0);

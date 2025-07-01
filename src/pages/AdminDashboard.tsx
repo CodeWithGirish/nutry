@@ -4170,10 +4170,30 @@ const AdminDashboard = () => {
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
                     Order History - Delivered Orders
+                    {orderHistoryConnectionStatus && (
+                      <Badge
+                        variant={
+                          orderHistoryConnectionStatus.overallStatus
+                            ? "default"
+                            : "destructive"
+                        }
+                        className="text-xs ml-2"
+                      >
+                        {orderHistoryConnectionStatus.overallStatus
+                          ? "Connected"
+                          : "Setup Required"}
+                      </Badge>
+                    )}
                   </CardTitle>
                   <p className="text-gray-600">
                     View all successfully delivered orders
                   </p>
+                  {orderHistoryConnectionStatus &&
+                    !orderHistoryConnectionStatus.overallStatus && (
+                      <p className="text-sm text-orange-600 mt-1">
+                        Database setup incomplete - some features may be limited
+                      </p>
+                    )}
                 </div>
                 <Button
                   variant="outline"

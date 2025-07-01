@@ -1759,6 +1759,31 @@ const AdminDashboard = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            {/* Connection Status Indicator */}
+            <Badge
+              variant={
+                connectionStatus === "connected"
+                  ? "default"
+                  : connectionStatus === "connecting"
+                    ? "secondary"
+                    : "destructive"
+              }
+              className="flex items-center gap-2"
+            >
+              {connectionStatus === "connected" && (
+                <CheckCircle className="h-3 w-3" />
+              )}
+              {connectionStatus === "connecting" && (
+                <RefreshCw className="h-3 w-3 animate-spin" />
+              )}
+              {connectionStatus === "error" && <XCircle className="h-3 w-3" />}
+              {connectionStatus === "connected"
+                ? "Connected"
+                : connectionStatus === "connecting"
+                  ? "Connecting..."
+                  : "Connection Error"}
+            </Badge>
+
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-32">
                 <SelectValue />

@@ -4172,12 +4172,11 @@ const AdminDashboard = () => {
                     Order History - Delivered Orders
                     {orderHistoryConnectionStatus && (
                       <Badge
-                        variant={
+                        className={`text-xs ml-2 ${
                           orderHistoryConnectionStatus.overallStatus
-                            ? "default"
-                            : "destructive"
-                        }
-                        className="text-xs ml-2"
+                            ? "bg-green-100 text-green-800 border-green-300"
+                            : "bg-red-100 text-red-800 border-red-300"
+                        }`}
                       >
                         {orderHistoryConnectionStatus.overallStatus
                           ? "Connected"

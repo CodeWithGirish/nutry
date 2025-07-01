@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import Analytics from "@/components/Analytics";
 import MultiImageUpload from "@/components/MultiImageUpload";
 import ReceiptGenerator from "@/components/admin/ReceiptGenerator";
+import OfflineIndicator from "@/components/OfflineIndicator";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,9 @@ import {
   MapPin,
   CreditCard,
   Shield,
+  CheckCircle2,
+  Truck,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
@@ -107,6 +111,9 @@ const AdminDashboard = () => {
   // Data states
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderHistory, setOrderHistory] = useState<any[]>([]);
+  const [orderHistoryConnectionStatus, setOrderHistoryConnectionStatus] =
+    useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
@@ -116,6 +123,9 @@ const AdminDashboard = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "connecting" | "error"
+  >("connecting");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState("30d");
   const [productLoading, setProductLoading] = useState(false);
@@ -150,7 +160,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     category: "",
-    image_url: "🥜",
+    image_url: "���",
     images: [] as string[],
     prices: [{ weight: "250g", price: 0, stock_quantity: 0 }],
     original_price: null as number | null,
@@ -209,6 +219,17 @@ const AdminDashboard = () => {
     try {
       console.log("Starting data fetch...");
 
+      // Check network connectivity first
+      if (!navigator.onLine) {
+        console.warn("Device appears to be offline");
+        setConnectionStatus("error");
+        setLoading(false);
+        return;
+      }
+
+      // Test order history connection
+      await runOrderHistoryConnectionTest();
+
       // Always try to fetch orders first - orders must be dynamic
       console.log("Fetching orders from database (always dynamic)...");
       await fetchOrders();
@@ -219,6 +240,7 @@ const AdminDashboard = () => {
         fetchReviews(),
         fetchUsers(),
         fetchContactMessages(),
+        fetchOrderHistory(),
         fetchStats(),
       ]);
 
@@ -288,11 +310,30 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (retryCount = 0) => {
+    const maxRetries = 2;
     try {
+      setConnectionStatus("connecting");
       console.log("Starting fetchOrders...");
+      console.log("Supabase URL:", supabase.supabaseUrl);
+      console.log("Network status:", navigator.onLine ? "Online" : "Offline");
+
+      // Test network connectivity first (non-blocking)
+      try {
+        await fetch("https://httpbin.org/get", {
+          method: "GET",
+          mode: "cors",
+          signal: AbortSignal.timeout(3000),
+        });
+        console.log("Network connectivity test: SUCCESS");
+      } catch (netError) {
+        console.warn("Network connectivity test: FAILED", netError);
+        console.log("Continuing with database connection attempt...");
+        // Don't throw error - continue with database attempt
+      }
 
       // Try simple orders fetch first to check if table exists
+      console.log("Attempting basic orders fetch...");
       let { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select("*")
@@ -300,14 +341,19 @@ const AdminDashboard = () => {
         .limit(1);
 
       if (ordersError) {
-        console.error("Basic orders fetch failed:", {
+        console.error("Basic orders fetch failed:", ordersError);
+        console.error("Error type:", typeof ordersError);
+        console.error("Error constructor:", ordersError.constructor.name);
+        console.error("Full error details:", {
           message: ordersError.message,
           code: ordersError.code,
           details: ordersError.details,
           hint: ordersError.hint,
           status: ordersError.status,
         });
-        throw new Error(`Orders table access failed: ${ordersError.message}`);
+        throw new Error(
+          `Orders table access failed: ${ordersError.message || "Unknown database error"}`,
+        );
       }
 
       console.log("Basic orders fetch successful, fetching full data...");
@@ -533,6 +579,7 @@ const AdminDashboard = () => {
       });
 
       setOrders(transformedOrders);
+      setConnectionStatus("connected");
       console.log("Orders fetched successfully:", transformedOrders.length);
       console.log(
         "Sample transformed order:",
@@ -549,27 +596,315 @@ const AdminDashboard = () => {
       console.error("Error fetching orders - Full details:", {
         message: error?.message,
         name: error?.name,
+        type: typeof error,
+        constructor: error?.constructor?.name,
         stack: error?.stack,
         supabaseError: error?.supabaseError,
         fullError: error,
       });
       console.error("Raw error object:", error);
 
-      // Set empty orders array
-      setOrders([]);
+      // Additional connection diagnostics
+      console.log("Running connection diagnostics...");
 
-      // Show detailed error message
+      // Test 1: Check if navigator exists
+      console.log("Navigator online status:", navigator?.onLine);
+
+      // Test 2: Test basic fetch
+      try {
+        await fetch("https://httpbin.org/get", {
+          method: "GET",
+          signal: AbortSignal.timeout(3000),
+        });
+        console.log("Basic fetch test: SUCCESS");
+      } catch (fetchError) {
+        console.error("Basic fetch test: FAILED", fetchError);
+      }
+
+      // Test 3: Test Supabase URL accessibility
+      try {
+        await fetch(supabase.supabaseUrl, {
+          method: "HEAD",
+          signal: AbortSignal.timeout(3000),
+        });
+        console.log("Supabase URL accessibility: SUCCESS");
+      } catch (supabaseError) {
+        console.error("Supabase URL accessibility: FAILED", supabaseError);
+      }
+
+      // Set empty orders array and error status
+      setOrders([]);
+      setConnectionStatus("error");
+
+      // Show detailed error message with more context
       const errorMessage =
-        error?.message ||
-        error?.details ||
-        error?.hint ||
-        "Unknown database error";
+        error?.message || error?.details || error?.hint || "Connection error";
+      const isNetworkError =
+        error?.message?.includes("Failed to fetch") ||
+        error?.name === "TypeError" ||
+        !navigator?.onLine;
+
+      // Retry logic for network errors
+      if (isNetworkError && retryCount < maxRetries) {
+        console.log(`Retrying fetchOrders... attempt ${retryCount + 1}`);
+        setTimeout(
+          () => {
+            fetchOrders(retryCount + 1);
+          },
+          (retryCount + 1) * 2000,
+        ); // Exponential backoff: 2s, 4s
+        return;
+      }
 
       toast({
-        title: "Orders Load Error",
-        description: `Database error: ${errorMessage}`,
+        title: isNetworkError ? "Connection Error" : "Database Error",
+        description: isNetworkError
+          ? `Unable to connect to the database after ${maxRetries + 1} attempts. Please check your internet connection and refresh the page.`
+          : `Database error: ${errorMessage}`,
         variant: "destructive",
       });
+    }
+  };
+
+  // Test order history database connection
+  const testOrderHistoryConnection = async () => {
+    const testResults = {
+      rpcFunction: false,
+      orderHistoryTable: false,
+      orderHistoryItemsTable: false,
+      profiles: false,
+      moveFunction: false,
+      overallStatus: false,
+    };
+
+    try {
+      console.log("Testing order history database connection...");
+
+      // Test 1: Check if RPC function exists
+      try {
+        const { data, error } = await supabase.rpc(
+          "get_order_history_with_details",
+        );
+        if (!error || (error && !error.message?.includes("does not exist"))) {
+          testResults.rpcFunction = true;
+          console.log(
+            "✅ RPC function 'get_order_history_with_details' exists",
+          );
+        } else {
+          console.log(
+            "❌ RPC function 'get_order_history_with_details' missing",
+          );
+        }
+      } catch (err) {
+        console.log("❌ RPC function test failed:", err);
+      }
+
+      // Test 2: Check order_history table
+      try {
+        const { data, error } = await supabase
+          .from("order_history")
+          .select("id")
+          .limit(1);
+        if (!error) {
+          testResults.orderHistoryTable = true;
+          console.log("✅ order_history table exists");
+        } else {
+          console.log("❌ order_history table missing:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ order_history table test failed:", err);
+      }
+
+      // Test 3: Check order_history_items table
+      try {
+        const { data, error } = await supabase
+          .from("order_history_items")
+          .select("id")
+          .limit(1);
+        if (!error) {
+          testResults.orderHistoryItemsTable = true;
+          console.log("✅ order_history_items table exists");
+        } else {
+          console.log("❌ order_history_items table missing:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ order_history_items table test failed:", err);
+      }
+
+      // Test 4: Check profiles table access
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .limit(1);
+        if (!error) {
+          testResults.profiles = true;
+          console.log("✅ profiles table accessible");
+        } else {
+          console.log("❌ profiles table access failed:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ profiles table test failed:", err);
+      }
+
+      // Test 5: Check move_order_to_history function
+      try {
+        // Try to call with a non-existent ID to test function existence
+        const { error } = await supabase.rpc("move_order_to_history", {
+          order_id: "00000000-0000-0000-0000-000000000000",
+        });
+        if (!error || (error && !error.message?.includes("does not exist"))) {
+          testResults.moveFunction = true;
+          console.log("✅ move_order_to_history function exists");
+        } else {
+          console.log("❌ move_order_to_history function missing");
+        }
+      } catch (err) {
+        console.log("❌ move_order_to_history function test failed:", err);
+      }
+
+      // Overall status
+      testResults.overallStatus =
+        testResults.orderHistoryTable &&
+        testResults.orderHistoryItemsTable &&
+        testResults.profiles;
+
+      console.log("Order History Connection Test Results:", testResults);
+      return testResults;
+    } catch (error) {
+      console.error("Failed to test order history connection:", error);
+      return testResults;
+    }
+  };
+
+  // Run order history connection test and update state
+  const runOrderHistoryConnectionTest = async () => {
+    const results = await testOrderHistoryConnection();
+    setOrderHistoryConnectionStatus(results);
+    return results;
+  };
+
+  const fetchOrderHistory = async () => {
+    try {
+      console.log("Fetching order history...");
+
+      // Try using the database function first
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_order_history_with_details",
+      );
+
+      if (rpcError) {
+        console.warn("RPC function failed, trying fallback method:", {
+          message: rpcError.message,
+          code: rpcError.code,
+          details: rpcError.details,
+          hint: rpcError.hint,
+          fullError: rpcError,
+        });
+
+        // Fallback: Query order_history table directly
+        const { data: historyData, error: historyError } = await supabase
+          .from("order_history")
+          .select(
+            `
+            id,
+            original_order_id,
+            user_id,
+            status,
+            payment_method,
+            payment_status,
+            total_amount,
+            shipping_address,
+            is_gift,
+            gift_message,
+            gift_box_price,
+            order_created_at,
+            order_updated_at,
+            delivered_date,
+            moved_to_history_at,
+            profiles:user_id(full_name, email)
+          `,
+          )
+          .order("moved_to_history_at", { ascending: false });
+
+        if (historyError) {
+          console.error("Error fetching order history with fallback:", {
+            message: historyError.message,
+            code: historyError.code,
+            details: historyError.details,
+            hint: historyError.hint,
+            fullError: historyError,
+          });
+          // If order_history table doesn't exist, return empty array silently
+          if (
+            historyError.code === "42P01" ||
+            historyError.message?.includes("relation") ||
+            historyError.message?.includes("does not exist")
+          ) {
+            console.log(
+              "Order history table doesn't exist yet - this is normal for new installations",
+            );
+          }
+          setOrderHistory([]);
+          return;
+        }
+
+        // Get order items for each history order
+        const enrichedData = await Promise.all(
+          (historyData || []).map(async (order) => {
+            try {
+              const { data: items, error: itemsError } = await supabase
+                .from("order_history_items")
+                .select("*")
+                .eq("order_history_id", order.id);
+
+              if (itemsError) {
+                console.warn(
+                  `Error fetching items for order ${order.id}:`,
+                  itemsError.message,
+                );
+                return {
+                  ...order,
+                  user_name: order.profiles?.full_name || "Unknown User",
+                  user_email: order.profiles?.email || "No email",
+                  order_items: [],
+                };
+              }
+
+              return {
+                ...order,
+                user_name: order.profiles?.full_name || "Unknown User",
+                user_email: order.profiles?.email || "No email",
+                order_items: items || [],
+              };
+            } catch (err) {
+              console.warn(
+                `Exception fetching items for order ${order.id}:`,
+                err,
+              );
+              return {
+                ...order,
+                user_name: order.profiles?.full_name || "Unknown User",
+                user_email: order.profiles?.email || "No email",
+                order_items: [],
+              };
+            }
+          }),
+        );
+
+        setOrderHistory(enrichedData);
+        console.log(
+          "Order history fetched with fallback method:",
+          enrichedData.length,
+        );
+        return;
+      }
+
+      setOrderHistory(rpcData || []);
+      console.log("Order history fetched successfully:", rpcData?.length || 0);
+    } catch (error: any) {
+      console.error("Exception fetching order history:", error);
+      setOrderHistory([]);
     }
   };
 
@@ -683,12 +1018,19 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Supabase error fetching contact messages:", error);
+        console.error("Supabase error fetching contact messages:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          fullError: error,
+        });
 
         // Handle missing table gracefully
         if (
           error.code === "42P01" ||
-          error.message?.includes("does not exist")
+          error.message?.includes("does not exist") ||
+          error.message?.includes("relation")
         ) {
           console.log(
             "Contact messages table not created yet, using empty array",
@@ -709,26 +1051,43 @@ const AdminDashboard = () => {
           return;
         }
 
-        throw new Error(
-          `Failed to fetch contact messages: ${error.message || JSON.stringify(error)}`,
+        // For other errors, still set empty array but log detailed error
+        console.warn(
+          "Contact messages fetch failed, using empty array:",
+          error.message,
         );
+        setContactMessages([]);
+        return;
       }
       setContactMessages(data || []);
       console.log("Contact messages fetched successfully:", data?.length || 0);
     } catch (error: any) {
-      console.error("Error fetching contact messages:", error.message || error);
+      console.error("Error fetching contact messages:", {
+        message: error?.message,
+        name: error?.name,
+        type: typeof error,
+        constructor: error?.constructor?.name,
+        fullError: error,
+      });
       setContactMessages([]);
 
-      // Only show error toast for non-missing table and non-RLS errors
+      // Check if it's a network error
+      const isNetworkError =
+        error?.message?.includes("Failed to fetch") ||
+        error?.name === "TypeError" ||
+        !navigator?.onLine;
+
+      // Only show error toast for significant errors (not table missing or RLS issues)
       if (
         !error.message?.includes("does not exist") &&
-        !error.message?.includes("infinite recursion")
+        !error.message?.includes("infinite recursion") &&
+        !error.message?.includes("relation") &&
+        isNetworkError
       ) {
-        toast({
-          title: "Contact Messages Load Error",
-          description: "Database connection may be limited.",
-          variant: "destructive",
-        });
+        console.warn(
+          "Contact messages network error - this may be due to connection issues",
+        );
+        // Don't show toast for network errors as they're handled elsewhere
       }
     }
   };
@@ -1568,6 +1927,22 @@ const AdminDashboard = () => {
     );
   };
 
+  // Helper function to format error objects for better logging
+  const formatError = (error: any) => {
+    if (typeof error === "object" && error !== null) {
+      return {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        name: error.name,
+        type: typeof error,
+        fullError: error,
+      };
+    }
+    return error;
+  };
+
   // All available order statuses
   const allOrderStatuses = [
     { value: "pending", label: "Pending" },
@@ -1643,6 +2018,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <OfflineIndicator />
       {/* Admin Navigation */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4">
@@ -1683,6 +2059,31 @@ const AdminDashboard = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            {/* Connection Status Indicator */}
+            <Badge
+              variant={
+                connectionStatus === "connected"
+                  ? "default"
+                  : connectionStatus === "connecting"
+                    ? "secondary"
+                    : "destructive"
+              }
+              className="flex items-center gap-2"
+            >
+              {connectionStatus === "connected" && (
+                <CheckCircle className="h-3 w-3" />
+              )}
+              {connectionStatus === "connecting" && (
+                <RefreshCw className="h-3 w-3 animate-spin" />
+              )}
+              {connectionStatus === "error" && <XCircle className="h-3 w-3" />}
+              {connectionStatus === "connected"
+                ? "Connected"
+                : connectionStatus === "connecting"
+                  ? "Connecting..."
+                  : "Connection Error"}
+            </Badge>
+
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -1694,6 +2095,19 @@ const AdminDashboard = () => {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
+            {/* Manual Retry Button for Connection Errors */}
+            {connectionStatus === "error" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchOrders(0)}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Connection
+              </Button>
+            )}
+
             <div className="flex items-center gap-2">
               <Badge
                 variant={autoRefresh ? "default" : "secondary"}
@@ -1950,8 +2364,7 @@ const AdminDashboard = () => {
                 className="px-4 py-2 whitespace-nowrap"
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Order History (
-                {orders.filter((order) => order.status === "delivered").length})
+                Order History ({orderHistory.length})
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
@@ -2553,221 +2966,334 @@ const AdminDashboard = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {/* Order Filters */}
-                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="order-search"
-                      className="text-sm font-medium"
+                {/* Order Status Tabs */}
+                <Tabs defaultValue="pending" className="w-full">
+                  <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger
+                      value="pending"
+                      className="flex items-center gap-2"
                     >
-                      Search:
-                    </Label>
-                    <Input
-                      id="order-search"
-                      placeholder="Search orders, customers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-48"
-                    />
+                      <Clock className="h-4 w-4" />
+                      Pending (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "pending",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="confirmed"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Confirmed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "confirmed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="packed"
+                      className="flex items-center gap-2"
+                    >
+                      <Package className="h-4 w-4" />
+                      Packed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "packed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="shipped"
+                      className="flex items-center gap-2"
+                    >
+                      <Truck className="h-4 w-4" />
+                      Shipped (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "shipped",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="delivered"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Delivered (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "delivered",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="cancelled"
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancelled (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "cancelled",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Shared filters */}
+                  <div className="flex flex-wrap items-center gap-4 my-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="order-search"
+                        className="text-sm font-medium"
+                      >
+                        Search:
+                      </Label>
+                      <Input
+                        id="order-search"
+                        placeholder="Search orders, customers..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-48"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="order-date"
+                        className="text-sm font-medium"
+                      >
+                        Date:
+                      </Label>
+                      <Select
+                        value={orderDateFilter}
+                        onValueChange={setOrderDateFilter}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Time</SelectItem>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="week">Last Week</SelectItem>
+                          <SelectItem value="month">Last Month</SelectItem>
+                          <SelectItem value="quarter">Last Quarter</SelectItem>
+                          <SelectItem value="custom">Custom Range</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {orderDateFilter === "custom" && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="start-date"
+                            className="text-sm font-medium"
+                          >
+                            From:
+                          </Label>
+                          <Input
+                            id="start-date"
+                            type="date"
+                            value={orderStartDate}
+                            onChange={(e) => setOrderStartDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="end-date"
+                            className="text-sm font-medium"
+                          >
+                            To:
+                          </Label>
+                          <Input
+                            id="end-date"
+                            type="date"
+                            value={orderEndDate}
+                            onChange={(e) => setOrderEndDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="order-status"
-                      className="text-sm font-medium"
-                    >
-                      Status:
-                    </Label>
-                    <Select
-                      value={orderStatusFilter}
-                      onValueChange={setOrderStatusFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Status-specific order tables */}
+                  {allOrderStatuses.map((statusConfig) => {
+                    const statusOrders = orders.filter(
+                      (order) =>
+                        order.payment_method !== "cod" &&
+                        order.status === statusConfig.value &&
+                        (searchTerm === "" ||
+                          order.user_name
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          order.user_email
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          formatOrderId(order)
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())),
+                    );
 
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="order-date" className="text-sm font-medium">
-                      Date:
-                    </Label>
-                    <Select
-                      value={orderDateFilter}
-                      onValueChange={setOrderDateFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Time</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="week">Last Week</SelectItem>
-                        <SelectItem value="month">Last Month</SelectItem>
-                        <SelectItem value="quarter">Last Quarter</SelectItem>
-                        <SelectItem value="custom">Custom Range</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {orderDateFilter === "custom" && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="start-date"
-                          className="text-sm font-medium"
-                        >
-                          From:
-                        </Label>
-                        <Input
-                          id="start-date"
-                          type="date"
-                          value={orderStartDate}
-                          onChange={(e) => setOrderStartDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="end-date"
-                          className="text-sm font-medium"
-                        >
-                          To:
-                        </Label>
-                        <Input
-                          id="end-date"
-                          type="date"
-                          value={orderEndDate}
-                          onChange={(e) => setOrderEndDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Showing {getFilteredOrders().length} of {orders.length}{" "}
-                    orders
-                  </div>
-                </div>
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead>Payment</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredOrders().map((order) => {
-                        const validNextStatuses = getValidNextStatuses(
-                          order.status,
-                        );
-                        return (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{order.user_name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {order.user_email}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {order.order_items?.length || 0} items
-                            </TableCell>
-                            <TableCell>
-                              {formatPrice(order.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  order.payment_status === "paid"
-                                    ? "bg-green-100 text-green-700"
-                                    : order.payment_status === "pending"
-                                      ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-red-100 text-red-700"
-                                }
-                              >
-                                {order.payment_status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={order.status}
-                                onValueChange={(value) =>
-                                  updateOrderStatus(order.id, value)
-                                }
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {allOrderStatuses.map((status) => (
-                                    <SelectItem
-                                      key={status.value}
-                                      value={status.value}
-                                      disabled={
-                                        status.value !== order.status &&
-                                        !validNextStatuses.includes(
-                                          status.value,
-                                        )
-                                      }
-                                    >
-                                      {status.label}
-                                      {status.value === order.status &&
-                                        " (current)"}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(order.created_at)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(order)}
-                                  title="View Order Details"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <ReceiptGenerator order={order} />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  title="Send Email"
-                                >
-                                  <Send className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                    return (
+                      <TabsContent
+                        key={statusConfig.value}
+                        value={statusConfig.value}
+                      >
+                        <div className="border rounded-lg">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Items</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Payment</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {statusOrders.length === 0 ? (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={8}
+                                    className="text-center py-8 text-gray-500"
+                                  >
+                                    No {statusConfig.label.toLowerCase()} orders
+                                    found
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                statusOrders.map((order) => {
+                                  const validNextStatuses =
+                                    getValidNextStatuses(order.status);
+                                  return (
+                                    <TableRow key={order.id}>
+                                      <TableCell className="font-mono text-sm font-medium">
+                                        {formatOrderId(order)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div>
+                                          <p className="font-medium">
+                                            {order.user_name}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            {order.user_email}
+                                          </p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        {order.order_items?.length || 0} items
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatPrice(order.total_amount)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                          className={
+                                            order.payment_status === "paid"
+                                              ? "bg-green-100 text-green-700"
+                                              : order.payment_status ===
+                                                  "pending"
+                                                ? "bg-yellow-100 text-yellow-700"
+                                                : "bg-red-100 text-red-700"
+                                          }
+                                        >
+                                          {order.payment_status}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Select
+                                          value={order.status}
+                                          onValueChange={(value) =>
+                                            updateOrderStatus(order.id, value)
+                                          }
+                                        >
+                                          <SelectTrigger className="w-32">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {allOrderStatuses.map((status) => (
+                                              <SelectItem
+                                                key={status.value}
+                                                value={status.value}
+                                                disabled={
+                                                  status.value !==
+                                                    order.status &&
+                                                  !validNextStatuses.includes(
+                                                    status.value,
+                                                  )
+                                                }
+                                              >
+                                                {status.label}
+                                                {status.value ===
+                                                  order.status && " (current)"}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatDate(order.created_at)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              setViewingOrder(order)
+                                            }
+                                            title="View Order Details"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                          </Button>
+                                          <ReceiptGenerator order={order} />
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            title="Send Email"
+                                          >
+                                            <Send className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>
@@ -2837,245 +3363,358 @@ const AdminDashboard = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {/* COD Order Filters */}
-                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="cod-order-search"
-                      className="text-sm font-medium"
+                {/* COD Order Status Tabs */}
+                <Tabs defaultValue="pending" className="w-full">
+                  <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger
+                      value="pending"
+                      className="flex items-center gap-2"
                     >
-                      Search:
-                    </Label>
-                    <Input
-                      id="cod-order-search"
-                      placeholder="Search COD orders, customers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-48"
-                    />
+                      <Clock className="h-4 w-4" />
+                      Pending (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "pending",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="confirmed"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Confirmed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "confirmed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="packed"
+                      className="flex items-center gap-2"
+                    >
+                      <Package className="h-4 w-4" />
+                      Packed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "packed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="shipped"
+                      className="flex items-center gap-2"
+                    >
+                      <Truck className="h-4 w-4" />
+                      Shipped (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "shipped",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="delivered"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Delivered (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "delivered",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="cancelled"
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancelled (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method === "cod" &&
+                            order.status === "cancelled",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Shared filters */}
+                  <div className="flex flex-wrap items-center gap-4 my-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="cod-order-search"
+                        className="text-sm font-medium"
+                      >
+                        Search:
+                      </Label>
+                      <Input
+                        id="cod-order-search"
+                        placeholder="Search COD orders, customers..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-48"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="cod-order-date"
+                        className="text-sm font-medium"
+                      >
+                        Date:
+                      </Label>
+                      <Select
+                        value={orderDateFilter}
+                        onValueChange={setOrderDateFilter}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Dates</SelectItem>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="week">This Week</SelectItem>
+                          <SelectItem value="month">This Month</SelectItem>
+                          <SelectItem value="quarter">This Quarter</SelectItem>
+                          <SelectItem value="custom">Custom Range</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {orderDateFilter === "custom" && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="cod-start-date"
+                            className="text-sm font-medium"
+                          >
+                            From:
+                          </Label>
+                          <Input
+                            id="cod-start-date"
+                            type="date"
+                            value={orderStartDate}
+                            onChange={(e) => setOrderStartDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="cod-end-date"
+                            className="text-sm font-medium"
+                          >
+                            To:
+                          </Label>
+                          <Input
+                            id="cod-end-date"
+                            type="date"
+                            value={orderEndDate}
+                            onChange={(e) => setOrderEndDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="cod-order-status"
-                      className="text-sm font-medium"
-                    >
-                      Status:
-                    </Label>
-                    <Select
-                      value={orderStatusFilter}
-                      onValueChange={setOrderStatusFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Status-specific COD order tables */}
+                  {allOrderStatuses.map((statusConfig) => {
+                    const statusOrders = orders.filter(
+                      (order) =>
+                        order.payment_method === "cod" &&
+                        order.status === statusConfig.value &&
+                        (searchTerm === "" ||
+                          order.user_name
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          order.user_email
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          formatOrderId(order)
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())),
+                    );
 
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="cod-order-date"
-                      className="text-sm font-medium"
-                    >
-                      Date:
-                    </Label>
-                    <Select
-                      value={orderDateFilter}
-                      onValueChange={setOrderDateFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Dates</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="week">This Week</SelectItem>
-                        <SelectItem value="month">This Month</SelectItem>
-                        <SelectItem value="quarter">This Quarter</SelectItem>
-                        <SelectItem value="custom">Custom Range</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {orderDateFilter === "custom" && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="cod-start-date"
-                          className="text-sm font-medium"
-                        >
-                          From:
-                        </Label>
-                        <Input
-                          id="cod-start-date"
-                          type="date"
-                          value={orderStartDate}
-                          onChange={(e) => setOrderStartDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="cod-end-date"
-                          className="text-sm font-medium"
-                        >
-                          To:
-                        </Label>
-                        <Input
-                          id="cod-end-date"
-                          type="date"
-                          value={orderEndDate}
-                          onChange={(e) => setOrderEndDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Showing {getFilteredCodOrders().length} of{" "}
-                    {getCodOrders().length} COD orders
-                  </div>
-                </div>
-
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Payment Status</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredCodOrders().map((order) => {
-                        const validNextStatuses = getValidNextStatuses(
-                          order.status,
-                        );
-                        return (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{order.user_name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {order.user_email}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {order.order_items?.length || 0} items
-                            </TableCell>
-                            <TableCell>
-                              {formatPrice(order.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  order.payment_status === "paid"
-                                    ? "bg-green-100 text-green-700"
-                                    : order.payment_status === "pending"
-                                      ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-red-100 text-red-700"
-                                }
-                              >
-                                {order.payment_status === "paid"
-                                  ? "Collected"
-                                  : "Pending Collection"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={order.status}
-                                onValueChange={(value) =>
-                                  updateOrderStatus(order.id, value)
-                                }
-                                disabled={validNextStatuses.length === 0}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {allOrderStatuses.map((status) => (
-                                    <SelectItem
-                                      key={status.value}
-                                      value={status.value}
-                                      disabled={
-                                        status.value !== order.status &&
-                                        !validNextStatuses.includes(
-                                          status.value,
-                                        )
-                                      }
-                                    >
-                                      {status.label}
-                                      {status.value === order.status &&
-                                        " (current)"}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(order.created_at)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(order)}
-                                  title="View Order Details"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <ReceiptGenerator order={order} />
-                                {order.payment_status === "pending" &&
-                                  order.status === "delivered" && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-green-600"
-                                      onClick={() =>
-                                        handleUpdatePaymentStatus(
-                                          order.id,
-                                          "paid",
-                                        )
-                                      }
-                                    >
-                                      Mark Collected
-                                    </Button>
-                                  )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => sendOrderUpdate(order)}
-                                  title="Send Order Update"
-                                >
-                                  <Send className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                    return (
+                      <TabsContent
+                        key={statusConfig.value}
+                        value={statusConfig.value}
+                      >
+                        <div className="border rounded-lg">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Items</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Payment Status</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {statusOrders.length === 0 ? (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={8}
+                                    className="text-center py-8 text-gray-500"
+                                  >
+                                    No {statusConfig.label.toLowerCase()} COD
+                                    orders found
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                statusOrders.map((order) => {
+                                  const validNextStatuses =
+                                    getValidNextStatuses(order.status);
+                                  return (
+                                    <TableRow key={order.id}>
+                                      <TableCell className="font-mono text-sm font-medium">
+                                        {formatOrderId(order)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div>
+                                          <p className="font-medium">
+                                            {order.user_name}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            {order.user_email}
+                                          </p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        {order.order_items?.length || 0} items
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatPrice(order.total_amount)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                          className={
+                                            order.payment_status === "paid"
+                                              ? "bg-green-100 text-green-700"
+                                              : order.payment_status ===
+                                                  "pending"
+                                                ? "bg-yellow-100 text-yellow-700"
+                                                : "bg-red-100 text-red-700"
+                                          }
+                                        >
+                                          {order.payment_status === "paid"
+                                            ? "Collected"
+                                            : "Pending Collection"}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Select
+                                          value={order.status}
+                                          onValueChange={(value) =>
+                                            updateOrderStatus(order.id, value)
+                                          }
+                                          disabled={
+                                            validNextStatuses.length === 0
+                                          }
+                                        >
+                                          <SelectTrigger className="w-32">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {allOrderStatuses.map((status) => (
+                                              <SelectItem
+                                                key={status.value}
+                                                value={status.value}
+                                                disabled={
+                                                  status.value !==
+                                                    order.status &&
+                                                  !validNextStatuses.includes(
+                                                    status.value,
+                                                  )
+                                                }
+                                              >
+                                                {status.label}
+                                                {status.value ===
+                                                  order.status && " (current)"}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatDate(order.created_at)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              setViewingOrder(order)
+                                            }
+                                            title="View Order Details"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                          </Button>
+                                          <ReceiptGenerator order={order} />
+                                          {order.payment_status === "pending" &&
+                                            order.status === "delivered" && (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-green-600"
+                                                onClick={() =>
+                                                  handleUpdatePaymentStatus(
+                                                    order.id,
+                                                    "paid",
+                                                  )
+                                                }
+                                              >
+                                                Mark Collected
+                                              </Button>
+                                            )}
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              sendOrderUpdate(order)
+                                            }
+                                            title="Send Order Update"
+                                          >
+                                            <Send className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>
@@ -3428,16 +4067,125 @@ const AdminDashboard = () => {
           {/* Order History Tab */}
           <TabsContent value="order-history" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Order History - Delivered Orders
-                </CardTitle>
-                <p className="text-gray-600">
-                  View all successfully delivered orders
-                </p>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Order History - Delivered Orders
+                    {orderHistoryConnectionStatus && (
+                      <Badge
+                        className={`text-xs ml-2 ${
+                          orderHistoryConnectionStatus.overallStatus
+                            ? "bg-green-100 text-green-800 border-green-300"
+                            : "bg-red-100 text-red-800 border-red-300"
+                        }`}
+                      >
+                        {orderHistoryConnectionStatus.overallStatus
+                          ? "Connected"
+                          : "Setup Required"}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <p className="text-gray-600">
+                    View all successfully delivered orders
+                  </p>
+                  {orderHistoryConnectionStatus &&
+                    !orderHistoryConnectionStatus.overallStatus && (
+                      <p className="text-sm text-orange-600 mt-1">
+                        Database setup incomplete - some features may be limited
+                      </p>
+                    )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runOrderHistoryConnectionTest}
+                  className="text-green-600 border-green-300 hover:bg-green-50"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Test Connection
+                </Button>
               </CardHeader>
               <CardContent>
+                {/* Connection Status Panel */}
+                {orderHistoryConnectionStatus && (
+                  <div
+                    className="mb-6 p-4 rounded-lg border"
+                    style={{
+                      backgroundColor:
+                        orderHistoryConnectionStatus.overallStatus
+                          ? "#f0fdf4"
+                          : "#fef3c7",
+                      borderColor: orderHistoryConnectionStatus.overallStatus
+                        ? "#22c55e"
+                        : "#f59e0b",
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      {orderHistoryConnectionStatus.overallStatus ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      )}
+                      <h4 className="font-medium">
+                        Database Connection Status
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.orderHistoryTable ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>History Table</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.orderHistoryItemsTable ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Items Table</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.profiles ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Profiles Access</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.rpcFunction ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Fetch Function</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {orderHistoryConnectionStatus.moveFunction ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>Move Function</span>
+                      </div>
+                    </div>
+                    {!orderHistoryConnectionStatus.overallStatus && (
+                      <div className="mt-3 p-3 bg-orange-50 rounded border border-orange-200">
+                        <p className="text-sm text-orange-800">
+                          <strong>Setup Required:</strong> Order history
+                          database setup is incomplete. Please run the setup SQL
+                          script to enable full functionality. Check the console
+                          for detailed test results.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -3452,116 +4200,140 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders
-                        .filter((order) => order.status === "delivered")
-                        .sort(
-                          (a, b) =>
-                            new Date(b.updated_at).getTime() -
-                            new Date(a.updated_at).getTime(),
-                        )
-                        .map((order) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-medium">
-                              {order.id ? formatOrderId(order) : "N/A"}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <div className="font-medium">
-                                  {order.user_name || "Unknown User"}
+                      {orderHistory.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-gray-500"
+                          >
+                            <div>
+                              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                              <p className="font-medium mb-2">
+                                No order history found
+                              </p>
+                              <p className="text-sm">
+                                Delivered orders will automatically move here
+                                after 24 hours.
+                              </p>
+                              <p className="text-xs mt-2">
+                                If this is a new installation, the database
+                                setup may be required.
+                              </p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        orderHistory
+                          .sort(
+                            (a, b) =>
+                              new Date(b.moved_to_history_at).getTime() -
+                              new Date(a.moved_to_history_at).getTime(),
+                          )
+                          .map((historyOrder) => (
+                            <TableRow key={historyOrder.id}>
+                              <TableCell className="font-medium">
+                                #
+                                {historyOrder.original_order_id
+                                  ?.toString()
+                                  .slice(-8)
+                                  .toUpperCase() || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">
+                                    {historyOrder.user_name || "Unknown User"}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {historyOrder.user_email || "No email"}
+                                  </div>
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {order.user_email || "No email"}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {order.order_items &&
-                                order.order_items.length > 0 ? (
-                                  <>
-                                    {order.order_items
-                                      .slice(0, 2)
-                                      .map((item, index) => (
-                                        <div
-                                          key={index}
-                                          className="text-gray-600"
-                                        >
-                                          {item.product_name} ({item.weight}) x
-                                          {item.quantity}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  {historyOrder.order_items &&
+                                  Array.isArray(historyOrder.order_items) &&
+                                  historyOrder.order_items.length > 0 ? (
+                                    <>
+                                      {historyOrder.order_items
+                                        .slice(0, 2)
+                                        .map((item, index) => (
+                                          <div
+                                            key={index}
+                                            className="text-gray-600"
+                                          >
+                                            {item.product_name} ({item.weight})
+                                            x{item.quantity}
+                                          </div>
+                                        ))}
+                                      {historyOrder.order_items.length > 2 && (
+                                        <div className="text-gray-500 text-xs">
+                                          +{historyOrder.order_items.length - 2}{" "}
+                                          more items
                                         </div>
-                                      ))}
-                                    {order.order_items.length > 2 && (
-                                      <div className="text-gray-500 text-xs">
-                                        +{order.order_items.length - 2} more
-                                        items
-                                      </div>
-                                    )}
-                                  </>
-                                ) : (
-                                  <span className="text-gray-500">
-                                    No items
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              {formatPrice(order.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {formatDate(order.updated_at)}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col gap-1">
-                                <Badge variant="outline" className="text-xs">
-                                  {order.payment_method.toUpperCase()}
-                                </Badge>
-                                <Badge
-                                  variant={
-                                    order.payment_status === "paid"
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {order.payment_status}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(order)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => downloadReceipt(order)}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-500">
+                                      No items
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                {formatPrice(historyOrder.total_amount)}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  {formatDate(
+                                    historyOrder.delivered_date ||
+                                      historyOrder.order_updated_at,
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {historyOrder.payment_method.toUpperCase()}
+                                  </Badge>
+                                  <Badge
+                                    variant={
+                                      historyOrder.payment_status === "paid"
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {historyOrder.payment_status}
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setViewingOrder(historyOrder)
+                                    }
+                                    title="View Order Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Download Receipt"
+                                    disabled
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      )}
                     </TableBody>
                   </Table>
-
-                  {orders.filter((order) => order.status === "delivered")
-                    .length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>No delivered orders found</p>
-                      <p className="text-sm">
-                        Delivered orders will appear here
-                      </p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

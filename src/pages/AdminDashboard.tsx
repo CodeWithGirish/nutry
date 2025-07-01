@@ -1080,10 +1080,14 @@ const AdminDashboard = () => {
       // Refresh orders data and order history to reflect changes
       await Promise.all([fetchOrders(), fetchOrderHistory()]);
 
-      toast({
-        title: "Daily Cleanup Completed",
-        description: `Moved ${deliveredOrders.length} delivered orders to history`,
-      });
+      if (movedCount > 0) {
+        toast({
+          title: "Daily Cleanup Completed",
+          description: `Moved ${movedCount} delivered orders to history`,
+        });
+      } else {
+        console.log("No orders were moved - database setup may be required");
+      }
     } catch (error: any) {
       console.error("Error during daily cleanup:", error);
       toast({

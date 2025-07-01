@@ -1045,9 +1045,10 @@ const AdminDashboard = () => {
       );
 
       // Move each delivered order to history
+      let movedCount = 0;
       for (const order of deliveredOrders) {
         try {
-          // Call the database function to move order to history
+          // First try the database function
           const { error: moveError } = await supabase.rpc(
             "move_order_to_history",
             {
@@ -1056,12 +1057,17 @@ const AdminDashboard = () => {
           );
 
           if (moveError) {
-            console.error(
-              `Error moving order ${order.id} to history:`,
+            console.warn(
+              `RPC function failed for order ${order.id}:`,
               moveError,
             );
+            console.log(
+              "Database function may not be set up yet - cleanup will be skipped for now",
+            );
+            break;
           } else {
             console.log(`Successfully moved order ${order.id} to history`);
+            movedCount++;
           }
         } catch (err) {
           console.error(`Exception moving order ${order.id}:`, err);

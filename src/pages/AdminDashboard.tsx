@@ -3909,8 +3909,12 @@ const AdminDashboard = () => {
                     <TableBody>
                       {orderHistory.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            No order history found. Delivered orders will appear here after the daily cleanup.
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-gray-500"
+                          >
+                            No order history found. Delivered orders will appear
+                            here after the daily cleanup.
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -3921,114 +3925,110 @@ const AdminDashboard = () => {
                               new Date(a.moved_to_history_at).getTime(),
                           )
                           .map((historyOrder) => (
-                          <TableRow key={historyOrder.id}>
-                            <TableCell className="font-medium">
-                              #
-                              {historyOrder.original_order_id
-                                ?.toString()
-                                .slice(-8)
-                                .toUpperCase() || "N/A"}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <div className="font-medium">
-                                  {historyOrder.user_name || "Unknown User"}
+                            <TableRow key={historyOrder.id}>
+                              <TableCell className="font-medium">
+                                #
+                                {historyOrder.original_order_id
+                                  ?.toString()
+                                  .slice(-8)
+                                  .toUpperCase() || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">
+                                    {historyOrder.user_name || "Unknown User"}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {historyOrder.user_email || "No email"}
+                                  </div>
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {historyOrder.user_email || "No email"}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {historyOrder.order_items &&
-                                Array.isArray(historyOrder.order_items) &&
-                                historyOrder.order_items.length > 0 ? (
-                                  <>
-                                    {historyOrder.order_items
-                                      .slice(0, 2)
-                                      .map((item, index) => (
-                                        <div
-                                          key={index}
-                                          className="text-gray-600"
-                                        >
-                                          {item.product_name} ({item.weight}) x
-                                          {item.quantity}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  {historyOrder.order_items &&
+                                  Array.isArray(historyOrder.order_items) &&
+                                  historyOrder.order_items.length > 0 ? (
+                                    <>
+                                      {historyOrder.order_items
+                                        .slice(0, 2)
+                                        .map((item, index) => (
+                                          <div
+                                            key={index}
+                                            className="text-gray-600"
+                                          >
+                                            {item.product_name} ({item.weight})
+                                            x{item.quantity}
+                                          </div>
+                                        ))}
+                                      {historyOrder.order_items.length > 2 && (
+                                        <div className="text-gray-500 text-xs">
+                                          +{historyOrder.order_items.length - 2}{" "}
+                                          more items
                                         </div>
-                                      ))}
-                                    {historyOrder.order_items.length > 2 && (
-                                      <div className="text-gray-500 text-xs">
-                                        +{historyOrder.order_items.length - 2}{" "}
-                                        more items
-                                      </div>
-                                    )}
-                                  </>
-                                ) : (
-                                  <span className="text-gray-500">
-                                    No items
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              {formatPrice(historyOrder.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {formatDate(
-                                  historyOrder.delivered_date ||
-                                    historyOrder.order_updated_at,
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col gap-1">
-                                <Badge variant="outline" className="text-xs">
-                                  {historyOrder.payment_method.toUpperCase()}
-                                </Badge>
-                                <Badge
-                                  variant={
-                                    historyOrder.payment_status === "paid"
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {historyOrder.payment_status}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(historyOrder)}
-                                  title="View Order Details"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  title="Download Receipt"
-                                  disabled
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-500">
+                                      No items
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                {formatPrice(historyOrder.total_amount)}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  {formatDate(
+                                    historyOrder.delivered_date ||
+                                      historyOrder.order_updated_at,
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {historyOrder.payment_method.toUpperCase()}
+                                  </Badge>
+                                  <Badge
+                                    variant={
+                                      historyOrder.payment_status === "paid"
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {historyOrder.payment_status}
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setViewingOrder(historyOrder)
+                                    }
+                                    title="View Order Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Download Receipt"
+                                    disabled
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
                       )}
                     </TableBody>
                   </Table>
-                      <p>No delivered orders found</p>
-                      <p className="text-sm">
-                        Delivered orders will appear here
-                      </p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

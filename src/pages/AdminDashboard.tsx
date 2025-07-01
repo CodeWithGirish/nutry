@@ -664,6 +664,117 @@ const AdminDashboard = () => {
     }
   };
 
+  // Test order history database connection
+  const testOrderHistoryConnection = async () => {
+    const testResults = {
+      rpcFunction: false,
+      orderHistoryTable: false,
+      orderHistoryItemsTable: false,
+      profiles: false,
+      moveFunction: false,
+      overallStatus: false,
+    };
+
+    try {
+      console.log("Testing order history database connection...");
+
+      // Test 1: Check if RPC function exists
+      try {
+        const { data, error } = await supabase.rpc(
+          "get_order_history_with_details",
+        );
+        if (!error || (error && !error.message?.includes("does not exist"))) {
+          testResults.rpcFunction = true;
+          console.log(
+            "✅ RPC function 'get_order_history_with_details' exists",
+          );
+        } else {
+          console.log(
+            "❌ RPC function 'get_order_history_with_details' missing",
+          );
+        }
+      } catch (err) {
+        console.log("❌ RPC function test failed:", err);
+      }
+
+      // Test 2: Check order_history table
+      try {
+        const { data, error } = await supabase
+          .from("order_history")
+          .select("id")
+          .limit(1);
+        if (!error) {
+          testResults.orderHistoryTable = true;
+          console.log("✅ order_history table exists");
+        } else {
+          console.log("❌ order_history table missing:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ order_history table test failed:", err);
+      }
+
+      // Test 3: Check order_history_items table
+      try {
+        const { data, error } = await supabase
+          .from("order_history_items")
+          .select("id")
+          .limit(1);
+        if (!error) {
+          testResults.orderHistoryItemsTable = true;
+          console.log("✅ order_history_items table exists");
+        } else {
+          console.log("❌ order_history_items table missing:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ order_history_items table test failed:", err);
+      }
+
+      // Test 4: Check profiles table access
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .limit(1);
+        if (!error) {
+          testResults.profiles = true;
+          console.log("✅ profiles table accessible");
+        } else {
+          console.log("❌ profiles table access failed:", error.message);
+        }
+      } catch (err) {
+        console.log("❌ profiles table test failed:", err);
+      }
+
+      // Test 5: Check move_order_to_history function
+      try {
+        // Try to call with a non-existent ID to test function existence
+        const { error } = await supabase.rpc("move_order_to_history", {
+          order_id: "00000000-0000-0000-0000-000000000000",
+        });
+        if (!error || (error && !error.message?.includes("does not exist"))) {
+          testResults.moveFunction = true;
+          console.log("✅ move_order_to_history function exists");
+        } else {
+          console.log("❌ move_order_to_history function missing");
+        }
+      } catch (err) {
+        console.log("❌ move_order_to_history function test failed:", err);
+      }
+
+      // Overall status
+      testResults.overallStatus =
+        testResults.orderHistoryTable &&
+        testResults.orderHistoryItemsTable &&
+        testResults.profiles;
+
+      console.log("Order History Connection Test Results:", testResults);
+      return testResults;
+    } catch (error) {
+      console.error("Failed to test order history connection:", error);
+      return testResults;
+    }
+  };
+
   const fetchOrderHistory = async () => {
     try {
       console.log("Fetching order history...");

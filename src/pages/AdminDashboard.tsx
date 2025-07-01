@@ -694,12 +694,19 @@ const AdminDashboard = () => {
           .order("moved_to_history_at", { ascending: false });
 
         if (historyError) {
-          console.error(
-            "Error fetching order history with fallback:",
-            historyError,
-          );
+          console.error("Error fetching order history with fallback:", {
+            message: historyError.message,
+            code: historyError.code,
+            details: historyError.details,
+            hint: historyError.hint,
+            fullError: historyError,
+          });
           // If order_history table doesn't exist, return empty array silently
-          if (historyError.code === "42P01") {
+          if (
+            historyError.code === "42P01" ||
+            historyError.message?.includes("relation") ||
+            historyError.message?.includes("does not exist")
+          ) {
             console.log(
               "Order history table doesn't exist yet - this is normal for new installations",
             );

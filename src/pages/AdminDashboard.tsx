@@ -3977,17 +3977,17 @@ const AdminDashboard = () => {
                             <TableCell>
                               <div className="flex flex-col gap-1">
                                 <Badge variant="outline" className="text-xs">
-                                  {order.payment_method.toUpperCase()}
+                                  {historyOrder.payment_method.toUpperCase()}
                                 </Badge>
                                 <Badge
                                   variant={
-                                    order.payment_status === "paid"
+                                    historyOrder.payment_status === "paid"
                                       ? "default"
                                       : "secondary"
                                   }
                                   className="text-xs"
                                 >
-                                  {order.payment_status}
+                                  {historyOrder.payment_status}
                                 </Badge>
                               </div>
                             </TableCell>
@@ -3996,14 +3996,16 @@ const AdminDashboard = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => setViewingOrder(order)}
+                                  onClick={() => setViewingOrder(historyOrder)}
+                                  title="View Order Details"
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => downloadReceipt(order)}
+                                  title="Download Receipt"
+                                  disabled
                                 >
                                   <Download className="h-4 w-4" />
                                 </Button>

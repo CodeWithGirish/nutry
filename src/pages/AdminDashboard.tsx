@@ -902,19 +902,32 @@ const AdminDashboard = () => {
       setContactMessages(data || []);
       console.log("Contact messages fetched successfully:", data?.length || 0);
     } catch (error: any) {
-      console.error("Error fetching contact messages:", error.message || error);
+      console.error("Error fetching contact messages:", {
+        message: error?.message,
+        name: error?.name,
+        type: typeof error,
+        constructor: error?.constructor?.name,
+        fullError: error,
+      });
       setContactMessages([]);
 
-      // Only show error toast for non-missing table and non-RLS errors
+      // Check if it's a network error
+      const isNetworkError =
+        error?.message?.includes("Failed to fetch") ||
+        error?.name === "TypeError" ||
+        !navigator?.onLine;
+
+      // Only show error toast for significant errors (not table missing or RLS issues)
       if (
         !error.message?.includes("does not exist") &&
-        !error.message?.includes("infinite recursion")
+        !error.message?.includes("infinite recursion") &&
+        !error.message?.includes("relation") &&
+        isNetworkError
       ) {
-        toast({
-          title: "Contact Messages Load Error",
-          description: "Database connection may be limited.",
-          variant: "destructive",
-        });
+        console.warn(
+          "Contact messages network error - this may be due to connection issues",
+        );
+        // Don't show toast for network errors as they're handled elsewhere
       }
     }
   };

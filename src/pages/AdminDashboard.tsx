@@ -3996,8 +3996,20 @@ const AdminDashboard = () => {
                             colSpan={7}
                             className="text-center py-8 text-gray-500"
                           >
-                            No order history found. Delivered orders will appear
-                            here after the daily cleanup.
+                            <div>
+                              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                              <p className="font-medium mb-2">
+                                No order history found
+                              </p>
+                              <p className="text-sm">
+                                Delivered orders will automatically move here
+                                after 24 hours.
+                              </p>
+                              <p className="text-xs mt-2">
+                                If this is a new installation, the database
+                                setup may be required.
+                              </p>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : (

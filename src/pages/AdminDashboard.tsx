@@ -294,8 +294,24 @@ const AdminDashboard = () => {
   const fetchOrders = async () => {
     try {
       console.log("Starting fetchOrders...");
+      console.log("Supabase URL:", supabase.supabaseUrl);
+      console.log("Network status:", navigator.onLine ? "Online" : "Offline");
+
+      // Test network connectivity first
+      try {
+        await fetch("https://httpbin.org/get", {
+          method: "GET",
+          mode: "cors",
+          signal: AbortSignal.timeout(5000),
+        });
+        console.log("Network connectivity test: SUCCESS");
+      } catch (netError) {
+        console.error("Network connectivity test: FAILED", netError);
+        throw new Error("Network connectivity issue detected");
+      }
 
       // Try simple orders fetch first to check if table exists
+      console.log("Attempting basic orders fetch...");
       let { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select("*")
@@ -303,14 +319,19 @@ const AdminDashboard = () => {
         .limit(1);
 
       if (ordersError) {
-        console.error("Basic orders fetch failed:", {
+        console.error("Basic orders fetch failed:", ordersError);
+        console.error("Error type:", typeof ordersError);
+        console.error("Error constructor:", ordersError.constructor.name);
+        console.error("Full error details:", {
           message: ordersError.message,
           code: ordersError.code,
           details: ordersError.details,
           hint: ordersError.hint,
           status: ordersError.status,
         });
-        throw new Error(`Orders table access failed: ${ordersError.message}`);
+        throw new Error(
+          `Orders table access failed: ${ordersError.message || "Unknown database error"}`,
+        );
       }
 
       console.log("Basic orders fetch successful, fetching full data...");

@@ -2563,221 +2563,334 @@ const AdminDashboard = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {/* Order Filters */}
-                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="order-search"
-                      className="text-sm font-medium"
+                {/* Order Status Tabs */}
+                <Tabs defaultValue="pending" className="w-full">
+                  <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger
+                      value="pending"
+                      className="flex items-center gap-2"
                     >
-                      Search:
-                    </Label>
-                    <Input
-                      id="order-search"
-                      placeholder="Search orders, customers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-48"
-                    />
+                      <Clock className="h-4 w-4" />
+                      Pending (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "pending",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="confirmed"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Confirmed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "confirmed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="packed"
+                      className="flex items-center gap-2"
+                    >
+                      <Package className="h-4 w-4" />
+                      Packed (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "packed",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="shipped"
+                      className="flex items-center gap-2"
+                    >
+                      <Truck className="h-4 w-4" />
+                      Shipped (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "shipped",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="delivered"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Delivered (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "delivered",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="cancelled"
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancelled (
+                      {
+                        orders.filter(
+                          (order) =>
+                            order.payment_method !== "cod" &&
+                            order.status === "cancelled",
+                        ).length
+                      }
+                      )
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Shared filters */}
+                  <div className="flex flex-wrap items-center gap-4 my-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="order-search"
+                        className="text-sm font-medium"
+                      >
+                        Search:
+                      </Label>
+                      <Input
+                        id="order-search"
+                        placeholder="Search orders, customers..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-48"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="order-date"
+                        className="text-sm font-medium"
+                      >
+                        Date:
+                      </Label>
+                      <Select
+                        value={orderDateFilter}
+                        onValueChange={setOrderDateFilter}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Time</SelectItem>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="week">Last Week</SelectItem>
+                          <SelectItem value="month">Last Month</SelectItem>
+                          <SelectItem value="quarter">Last Quarter</SelectItem>
+                          <SelectItem value="custom">Custom Range</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {orderDateFilter === "custom" && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="start-date"
+                            className="text-sm font-medium"
+                          >
+                            From:
+                          </Label>
+                          <Input
+                            id="start-date"
+                            type="date"
+                            value={orderStartDate}
+                            onChange={(e) => setOrderStartDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor="end-date"
+                            className="text-sm font-medium"
+                          >
+                            To:
+                          </Label>
+                          <Input
+                            id="end-date"
+                            type="date"
+                            value={orderEndDate}
+                            onChange={(e) => setOrderEndDate(e.target.value)}
+                            className="w-36"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="order-status"
-                      className="text-sm font-medium"
-                    >
-                      Status:
-                    </Label>
-                    <Select
-                      value={orderStatusFilter}
-                      onValueChange={setOrderStatusFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Status-specific order tables */}
+                  {allOrderStatuses.map((statusConfig) => {
+                    const statusOrders = orders.filter(
+                      (order) =>
+                        order.payment_method !== "cod" &&
+                        order.status === statusConfig.value &&
+                        (searchTerm === "" ||
+                          order.user_name
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          order.user_email
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          formatOrderId(order)
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())),
+                    );
 
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="order-date" className="text-sm font-medium">
-                      Date:
-                    </Label>
-                    <Select
-                      value={orderDateFilter}
-                      onValueChange={setOrderDateFilter}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Time</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="week">Last Week</SelectItem>
-                        <SelectItem value="month">Last Month</SelectItem>
-                        <SelectItem value="quarter">Last Quarter</SelectItem>
-                        <SelectItem value="custom">Custom Range</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {orderDateFilter === "custom" && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="start-date"
-                          className="text-sm font-medium"
-                        >
-                          From:
-                        </Label>
-                        <Input
-                          id="start-date"
-                          type="date"
-                          value={orderStartDate}
-                          onChange={(e) => setOrderStartDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="end-date"
-                          className="text-sm font-medium"
-                        >
-                          To:
-                        </Label>
-                        <Input
-                          id="end-date"
-                          type="date"
-                          value={orderEndDate}
-                          onChange={(e) => setOrderEndDate(e.target.value)}
-                          className="w-36"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Showing {getFilteredOrders().length} of {orders.length}{" "}
-                    orders
-                  </div>
-                </div>
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead>Payment</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredOrders().map((order) => {
-                        const validNextStatuses = getValidNextStatuses(
-                          order.status,
-                        );
-                        return (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-mono text-sm font-medium">
-                              {formatOrderId(order)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{order.user_name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {order.user_email}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {order.order_items?.length || 0} items
-                            </TableCell>
-                            <TableCell>
-                              {formatPrice(order.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  order.payment_status === "paid"
-                                    ? "bg-green-100 text-green-700"
-                                    : order.payment_status === "pending"
-                                      ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-red-100 text-red-700"
-                                }
-                              >
-                                {order.payment_status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={order.status}
-                                onValueChange={(value) =>
-                                  updateOrderStatus(order.id, value)
-                                }
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {allOrderStatuses.map((status) => (
-                                    <SelectItem
-                                      key={status.value}
-                                      value={status.value}
-                                      disabled={
-                                        status.value !== order.status &&
-                                        !validNextStatuses.includes(
-                                          status.value,
-                                        )
-                                      }
-                                    >
-                                      {status.label}
-                                      {status.value === order.status &&
-                                        " (current)"}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(order.created_at)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setViewingOrder(order)}
-                                  title="View Order Details"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <ReceiptGenerator order={order} />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  title="Send Email"
-                                >
-                                  <Send className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                    return (
+                      <TabsContent
+                        key={statusConfig.value}
+                        value={statusConfig.value}
+                      >
+                        <div className="border rounded-lg">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Items</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Payment</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {statusOrders.length === 0 ? (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={8}
+                                    className="text-center py-8 text-gray-500"
+                                  >
+                                    No {statusConfig.label.toLowerCase()} orders
+                                    found
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                statusOrders.map((order) => {
+                                  const validNextStatuses =
+                                    getValidNextStatuses(order.status);
+                                  return (
+                                    <TableRow key={order.id}>
+                                      <TableCell className="font-mono text-sm font-medium">
+                                        {formatOrderId(order)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div>
+                                          <p className="font-medium">
+                                            {order.user_name}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            {order.user_email}
+                                          </p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        {order.order_items?.length || 0} items
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatPrice(order.total_amount)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                          className={
+                                            order.payment_status === "paid"
+                                              ? "bg-green-100 text-green-700"
+                                              : order.payment_status ===
+                                                  "pending"
+                                                ? "bg-yellow-100 text-yellow-700"
+                                                : "bg-red-100 text-red-700"
+                                          }
+                                        >
+                                          {order.payment_status}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Select
+                                          value={order.status}
+                                          onValueChange={(value) =>
+                                            updateOrderStatus(order.id, value)
+                                          }
+                                        >
+                                          <SelectTrigger className="w-32">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {allOrderStatuses.map((status) => (
+                                              <SelectItem
+                                                key={status.value}
+                                                value={status.value}
+                                                disabled={
+                                                  status.value !==
+                                                    order.status &&
+                                                  !validNextStatuses.includes(
+                                                    status.value,
+                                                  )
+                                                }
+                                              >
+                                                {status.label}
+                                                {status.value ===
+                                                  order.status && " (current)"}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatDate(order.created_at)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              setViewingOrder(order)
+                                            }
+                                            title="View Order Details"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                          </Button>
+                                          <ReceiptGenerator order={order} />
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            title="Send Email"
+                                          >
+                                            <Send className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>

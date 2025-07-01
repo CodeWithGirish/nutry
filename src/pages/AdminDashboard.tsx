@@ -1009,8 +1009,8 @@ const AdminDashboard = () => {
       // Mark cleanup as completed for today
       localStorage.setItem("lastOrderCleanup", today);
 
-      // Refresh orders data to reflect changes
-      await fetchOrders();
+      // Refresh orders data and order history to reflect changes
+      await Promise.all([fetchOrders(), fetchOrderHistory()]);
 
       toast({
         title: "Daily Cleanup Completed",

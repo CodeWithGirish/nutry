@@ -1,11 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Use direct Supabase URL - proxy approach was causing issues in cloud environment
-const supabaseUrl = "https://truzxbzzgmfrifiygmgr.supabase.co";
+const supabaseUrl = "";
 
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXp4Ynp6Z21mcmlmaXlnbWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDQ3ODQsImV4cCI6MjA2NjI4MDc4NH0.ec8oCrlnkWOy96uKt9Z_JctKoOwX81z_gO6U3kuIRbc";
-
+const supabaseAnonKey =""
+  
 console.log("Supabase configuration:", {
   supabaseUrl,
   mode: import.meta.env.MODE,

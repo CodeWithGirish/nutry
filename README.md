@@ -84,8 +84,7 @@ package.json
 
 👤 **Author**
 ------------
-
-[Your Name]
+Girish Patil
 
 📝 **License**
 ------------

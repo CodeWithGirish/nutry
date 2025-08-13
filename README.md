@@ -77,11 +77,6 @@ package.json
 1. Run tests: `npm run test`
 2. Use the `--watch` flag to run tests in watch mode: `npm run test -- --watch`
 
-📸 **Screenshots**
-----------------
-
-[Insert screenshots of the application in action]
-
 📦 **API Reference**
 -------------------
 
